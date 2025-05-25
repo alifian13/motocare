@@ -1,6 +1,6 @@
 // lib/models/service_history_item.dart
-import 'package:flutter/material.dart'; // Untuk IconData jika masih mau digunakan di UI
 import 'package:intl/intl.dart';
+// import 'package:flutter/material.dart'; // Hanya jika Anda menggunakan IconData di sini
 
 class ServiceHistoryItem {
   final int historyId;
@@ -11,7 +11,8 @@ class ServiceHistoryItem {
   final String? description;
   final String? workshopName;
   final double? cost;
-  // final IconData icon; // Anda bisa tentukan icon di UI berdasarkan serviceType
+  final DateTime? createdAt; // Tambahkan jika dikirim API
+  // final IconData icon; // Logika icon lebih baik di UI berdasarkan serviceType
 
   ServiceHistoryItem({
     required this.historyId,
@@ -22,34 +23,24 @@ class ServiceHistoryItem {
     this.description,
     this.workshopName,
     this.cost,
-    // required this.icon,
+    this.createdAt,
   });
 
   factory ServiceHistoryItem.fromJson(Map<String, dynamic> json) {
     return ServiceHistoryItem(
       historyId: json['history_id'] as int,
       vehicleId: json['vehicle_id'] as int,
-      serviceDate: DateTime.parse(json['service_date'] as String),
+      serviceDate: DateTime.parse(json['service_date'] as String), // API mengirim DATEONLY
       odometerAtService: json['odometer_at_service'] as int,
-      serviceType: json['service_type'] as String,
+      serviceType: json['service_type'] as String? ?? 'Servis Umum',
       description: json['description'] as String?,
       workshopName: json['workshop_name'] as String?,
       cost: json['cost'] != null ? double.tryParse(json['cost'].toString()) : null,
-      // icon: _getIconForServiceType(json['service_type'] as String), // Logika icon di UI
+      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : (json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null), // Handle createdAt dari Sequelize
     );
   }
 
   String get formattedServiceDate {
-    return DateFormat('dd MMM yyyy').format(serviceDate);
+    return DateFormat('dd MMM yyyy').format(serviceDate); // Format sedikit berbeda untuk contoh
   }
 }
-
-// Contoh helper untuk menentukan icon berdasarkan tipe servis (opsional, bisa di UI langsung)
-// IconData _getIconForServiceType(String serviceType) {
-//   if (serviceType.toLowerCase().contains('oli')) {
-//     return Icons.opacity_outlined;
-//   } else if (serviceType.toLowerCase().contains('cvt')) {
-//     return Icons.settings_applications_outlined;
-//   }
-//   return Icons.build_outlined; // Default icon
-// }
