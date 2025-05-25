@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Untuk cek status login (simulasi)
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/profile_screen.dart';
 
-// Ganti path import sesuai struktur folder Anda
-// Jika screens ada di lib/screens/, services di lib/services/, dll.
+// Import semua screen Anda
 import 'screens/home_screen.dart';
 import 'screens/register_screen.dart';
-import 'screens/history_screen.dart'; // Buat file ini jika belum ada
-import 'screens/schedule_screen.dart'; // Buat file ini jika belum ada
-import 'screens/notification_list_screen.dart'; // Buat file ini jika belum ada
-// import 'services/user_service.dart'; // Jika diperlukan untuk cek login awal
+import 'screens/login_screen.dart';
+import 'screens/history_screen.dart';
+import 'screens/schedule_screen.dart';
+import 'screens/notification_list_screen.dart';
 
 void main() async {
-  // Pastikan Flutter binding sudah diinisialisasi sebelum menggunakan SharedPreferences
   WidgetsFlutterBinding.ensureInitialized();
-  // Simulasi pengecekan status login
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  bool isLoggedIn = prefs.getString('email') != null && prefs.getString('email')!.isNotEmpty;
+  // Cek apakah token ada untuk menentukan status login
+  String? token = prefs.getString('token');
 
-  runApp(MotorApp(isLoggedIn: isLoggedIn));
+  runApp(MotorApp(isLoggedIn: token != null && token.isNotEmpty));
 }
 
 class MotorApp extends StatelessWidget {
@@ -27,7 +26,7 @@ class MotorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MotoCare', // Judul aplikasi sesuai desain
+      title: 'MotoCare',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Colors.grey[200],
@@ -46,7 +45,6 @@ class MotorApp extends StatelessWidget {
           fillColor: Colors.white,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
@@ -66,27 +64,36 @@ class MotorApp extends StatelessWidget {
             ),
           ),
         ),
-        cardTheme: CardTheme(
-          elevation: 2.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 5.0),
-        ),
-        textTheme: TextTheme( // Styling teks dasar
-          bodyLarge: TextStyle(color: Colors.grey[800]),
-          bodyMedium: TextStyle(color: Colors.grey[700]),
-          titleMedium: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
-        )
       ),
-      initialRoute: isLoggedIn ? '/home' : '/register', // Arahkan berdasarkan status login
+      initialRoute: isLoggedIn ? '/home' : '/login',
       routes: {
+        '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/home': (context) => const HomeScreen(),
-        '/history': (context) => const HistoryScreen(),
-        '/schedule': (context) => const ScheduleScreen(),
+        '/history': (context) {
+          final arguments = ModalRoute.of(context)!.settings.arguments;
+          // Pastikan arguments adalah int atau handle jika null/salah tipe
+          if (arguments is int) {
+            return HistoryScreen(vehicleId: arguments);
+          }
+          // Fallback jika argumen tidak ada atau salah tipe
+          // Anda bisa mengarahkan ke halaman error atau halaman utama dengan pesan
+          return Scaffold(
+              appBar: AppBar(title: Text("Error")),
+              body: Center(child: Text("ID Kendaraan tidak valid atau tidak ditemukan untuk History.")));
+        },
+        '/schedule': (context) {
+          final arguments = ModalRoute.of(context)!.settings.arguments;
+          if (arguments is int) {
+            return ScheduleScreen(vehicleId: arguments);
+          }
+          // Fallback
+          return Scaffold(
+              appBar: AppBar(title: Text("Error")),
+              body: Center(child: Text("ID Kendaraan tidak valid atau tidak ditemukan untuk Jadwal.")));
+        },
         '/notifications': (context) => const NotificationListScreen(),
-        // Tambahkan rute lain jika diperlukan, misal '/profile', '/contact-us'
+        '/profile': (context) => const ProfileScreen(),
       },
     );
   }

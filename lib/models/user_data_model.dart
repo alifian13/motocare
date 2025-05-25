@@ -1,49 +1,43 @@
-import 'package:intl/intl.dart'; // Tambahkan intl ke pubspec.yaml: `flutter pub add intl`
+// lib/models/user_data_model.dart
+import 'package:intl/intl.dart';
 
 class UserData {
   final String name;
-  final String email;
-  final String address;
-  final String vehicleModel; // Sebelumnya 'motor' atau 'motor_model'
+  final String email; // Mungkin tidak ditampilkan langsung di dashboard utama, tapi bisa di drawer
+  // final String address; // Opsional untuk ditampilkan
+  final String vehicleModel;
   final String plateNumber;
   final DateTime? lastServiceDate;
   final String brand;
   final int currentOdometer;
-  // final String password; // Mungkin tidak perlu ditampilkan di UI
+  final String? vehicleLogoUrl;
+  final String? userPhotoUrl;
 
   UserData({
     required this.name,
     required this.email,
-    required this.address,
+    // required this.address,
     required this.vehicleModel,
     required this.plateNumber,
     this.lastServiceDate,
     required this.brand,
     required this.currentOdometer,
-    // required this.password,
+    this.vehicleLogoUrl,
+    this.userPhotoUrl
   });
 
-  factory UserData.fromMap(Map<String, dynamic> map) {
-    DateTime? parsedDate;
-    if (map['last_service_date'] != null) {
-      try {
-        parsedDate = DateTime.tryParse(map['last_service_date']);
-      } catch (e) {
-        print("Error parsing date from SharedPreferences: ${map['last_service_date']}");
-        parsedDate = null;
-      }
-    }
-
+  // Jika Anda ingin membuat UserData dari data SharedPreferences dan data kendaraan terpisah
+  factory UserData.combine(Map<String, dynamic> userDataFromPrefs, Vehicle? vehicleData) {
     return UserData(
-      name: map['name'] ?? '',
-      email: map['email'] ?? '',
-      address: map['address'] ?? '',
-      vehicleModel: map['motor_model'] ?? '', // Sesuaikan dengan key di SharedPreferences
-      plateNumber: map['plate_number'] ?? 'N/A',
-      lastServiceDate: parsedDate,
-      brand: map['brand'] ?? 'N/A',
-      currentOdometer: map['odometer'] ?? 0,
-      // password: map['password'] ?? '',
+      name: userDataFromPrefs['name'] ?? "Pengguna",
+      email: userDataFromPrefs['email'] ?? "",
+      userPhotoUrl: userDataFromPrefs['userPhotoUrl'], // Ambil dari SharedPreferences atau data user login
+      vehicleModel: vehicleData?.model ?? "N/A",
+      vehicleLogoUrl: vehicleData?.logoUrl,
+      plateNumber: vehicleData?.plateNumber ?? "N/A",
+      lastServiceDate: vehicleData?.lastServiceDate,
+      brand: vehicleData?.brand ?? "N/A",
+      currentOdometer: vehicleData?.currentOdometer ?? 0,
     );
   }
 
@@ -54,5 +48,47 @@ class UserData {
     } catch (e) {
       return "Format tanggal salah";
     }
+  }
+}
+
+// Model sederhana untuk Kendaraan
+class Vehicle {
+  final int vehicleId;
+  final int userId;
+  final String plateNumber;
+  final String brand;
+  final String model;
+  final int currentOdometer;
+  final DateTime? lastServiceDate;
+  final String? photoUrl;
+  final String? logoUrl;
+  // Tambahkan field lain jika ada dari API (created_at, updated_at)
+
+  Vehicle({
+    required this.vehicleId,
+    required this.userId,
+    required this.plateNumber,
+    required this.brand,
+    required this.model,
+    required this.currentOdometer,
+    this.lastServiceDate,
+    this.photoUrl,
+    this.logoUrl,
+  });
+
+  factory Vehicle.fromJson(Map<String, dynamic> json) {
+    return Vehicle(
+      vehicleId: json['vehicle_id'] as int,
+      userId: json['user_id'] as int,
+      plateNumber: json['plate_number'] as String,
+      brand: json['brand'] as String,
+      model: json['model'] as String,
+      currentOdometer: json['current_odometer'] as int? ?? 0,
+      lastServiceDate: json['last_service_date'] != null
+          ? DateTime.tryParse(json['last_service_date'])
+          : null,
+      photoUrl: json['photo_url'] as String?,
+      logoUrl: json['logo_url'] as String?,
+    );
   }
 }

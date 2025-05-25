@@ -1,12 +1,12 @@
+// lib/screens/register_screen.dart
 import 'package:flutter/material.dart';
-// import 'package:location/location.dart' as loc; // Menggunakan alias untuk menghindari konflik jika ada
 import '../services/user_service.dart';
-import '../services/location_service.dart'; // Asumsi LocationService mengembalikan LatLng dari latlong2
+// import '../services/location_service.dart'; // LocationService tidak digunakan di registrasi API saat ini
 
 // Model data sederhana untuk dropdown, bisa dipisah ke file model jika kompleks
 class DropdownOption {
-  final String id;
-  final String name;
+  final String id; // e.g., 'honda', 'beat'
+  final String name; // e.g., 'Honda', 'Beat'
   DropdownOption(this.id, this.name);
 }
 
@@ -22,37 +22,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _addressController = TextEditingController();
-  final _plateController = TextEditingController(); // Plat Nomor
-  final _odometerController = TextEditingController(); // Odometer
-  final _passwordController = TextEditingController(); // Password
+  final _plateController = TextEditingController();
+  final _odometerController = TextEditingController();
+  final _passwordController = TextEditingController();
 
-  String? _selectedBrandId;
-  String? _selectedModelId;
+  String? _selectedBrandId; // Ini akan menyimpan nilai seperti 'honda'
+  String? _selectedModelId; // Ini akan menyimpan nilai seperti 'beat'
   DateTime? _selectedServiceDate;
 
-  final LocationService _locationService = LocationService();
+  // final LocationService _locationService = LocationService(); // Tidak digunakan di sini
   final UserService _userService = UserService();
+  bool _isLoading = false;
 
-  // Contoh data untuk dropdown (gantilah dengan data dinamis jika perlu)
+  // Data dropdown (sesuaikan dengan kebutuhan)
   final List<DropdownOption> _brands = [
-    DropdownOption('honda', 'Honda'),
-    DropdownOption('yamaha', 'Yamaha'),
-    DropdownOption('suzuki', 'Suzuki'),
-    DropdownOption('kawasaki', 'Kawasaki'),
+    DropdownOption('Honda', 'Honda'), // ID bisa sama dengan nama jika sederhana
+    DropdownOption('Yamaha', 'Yamaha'),
+    DropdownOption('Suzuki', 'Suzuki'),
+    DropdownOption('Kawasaki', 'Kawasaki'),
   ];
 
   final Map<String, List<DropdownOption>> _models = {
-    'honda': [
-      DropdownOption('beat', 'Beat'),
-      DropdownOption('vario', 'Vario'),
-      DropdownOption('pcx', 'PCX')
-    ],
-    'yamaha': [
-      DropdownOption('nmax', 'NMAX'),
-      DropdownOption('aerox', 'Aerox'),
-      DropdownOption('mio', 'Mio')
-    ],
-    // Tambahkan model lain
+    'Honda': [ DropdownOption('Beat', 'Beat'), DropdownOption('Vario', 'Vario'), DropdownOption('PCX', 'PCX') ],
+    'Yamaha': [ DropdownOption('NMAX', 'NMAX'), DropdownOption('Aerox', 'Aerox'), DropdownOption('Mio', 'Mio') ],
+    'Suzuki': [ DropdownOption('Address', 'Address'), DropdownOption('NEX II', 'NEX II') ],
+    'Kawasaki': [ DropdownOption('Ninja 250', 'Ninja 250'), DropdownOption('KLX 150', 'KLX 150') ],
   };
   List<DropdownOption> _currentModels = [];
 
@@ -72,7 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context: context,
       initialDate: _selectedServiceDate ?? DateTime.now(),
       firstDate: DateTime(2000),
-      lastDate: DateTime.now(), // Tanggal servis terakhir tidak boleh di masa depan
+      lastDate: DateTime.now(),
     );
     if (picked != null && picked != _selectedServiceDate) {
       setState(() {
@@ -81,45 +75,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  void _registerUser() async {
+  Future<void> _attemptRegister() async {
     if (_formKey.currentState!.validate()) {
-      // Ambil lokasi GPS pengguna (asumsi LocationService sudah dihandle dengan baik)
-      // final locationData = await _locationService.getCurrentLocation(); // Mengembalikan LatLng?
+      setState(() {
+        _isLoading = true;
+      });
 
-      // if (locationData == null) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(content: Text('GPS tidak tersedia atau izin ditolak!')),
-      //   );
-      //   return;
-      // }
+      // Dapatkan nama brand dan model berdasarkan ID yang dipilih
+      String brandName = _brands.firstWhere((b) => b.id == _selectedBrandId, orElse: () => DropdownOption('', '')).name;
+      String modelName = _currentModels.firstWhere((m) => m.id == _selectedModelId, orElse: () => DropdownOption('', '')).name;
 
-      // Kumpulkan semua data
-      // Anda perlu menyesuaikan metode registerUser di UserService
-      // untuk menerima semua field baru ini.
-      try {
-        // Simulasi, karena UserService Anda saat ini hanya menerima beberapa parameter.
-        // Anda HARUS mengupdate UserService.registerUser
-        await _userService.registerUser(
-          _nameController.text,
-          _emailController.text,
-          _addressController.text,
-          _selectedModelId ?? 'N/A', // Atau brand + model
-          // locationData, // Kirim LatLng
-          // Tambahkan parameter baru di UserService:
-          plateNumber: _plateController.text,
-          lastServiceDate: _selectedServiceDate,
-          brand: _selectedBrandId,
-          currentOdometer: int.tryParse(_odometerController.text) ?? 0,
-          password: _passwordController.text,
-        );
 
+      final result = await _userService.registerUser(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+        address: _addressController.text.trim(),
+        plateNumber: _plateController.text.trim().toUpperCase(),
+        brand: brandName, // Kirim nama brand
+        motorModel: modelName, // Kirim nama model
+        currentOdometer: int.tryParse(_odometerController.text.trim()),
+        lastServiceDate: _selectedServiceDate,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pendaftaran berhasil!')),
+          SnackBar(
+            content: Text(result['data']?['message'] ?? 'Pendaftaran berhasil! Silakan login.'),
+            backgroundColor: Colors.green,
+          ),
         );
-        Navigator.pushReplacementNamed(context, '/home');
-      } catch (e) {
+        Navigator.pushReplacementNamed(context, '/login'); // Arahkan ke login setelah registrasi
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal mendaftar: $e')),
+          SnackBar(
+            content: Text(result['message'] ?? 'Pendaftaran gagal. Silakan coba lagi.'),
+            backgroundColor: Colors.redAccent,
+          ),
         );
       }
     }
@@ -129,7 +127,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MotoCare'),
+        title: const Text('Registrasi MotoCare'),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -139,33 +137,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              _buildTextField(controller: _nameController, label: 'Nama Lengkap', hint: 'Rizky Alifian Ilham'),
+              // ... (TextFormField Anda yang sudah ada, pastikan controller dan validator sesuai)
+              // Contoh untuk Nama Lengkap:
+              _buildTextField(controller: _nameController, label: 'Nama Lengkap', hint: 'Masukkan nama lengkap Anda'),
               const SizedBox(height: 15),
-              _buildTextField(controller: _emailController, label: 'Email', hint: 'rizky@email.com', keyboardType: TextInputType.emailAddress),
+              _buildTextField(controller: _emailController, label: 'Email', hint: 'contoh@email.com', keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Email tidak boleh kosong';
+                  if (!value.contains('@') || !value.contains('.')) return 'Format email tidak valid';
+                  return null;
+                }
+              ),
               const SizedBox(height: 15),
-              _buildTextField(controller: _addressController, label: 'Alamat', hint: 'Trini RT04/RW09', maxLines: 2),
+              _buildTextField(controller: _passwordController, label: 'Password', hint: 'Minimal 6 karakter', obscureText: true,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Password tidak boleh kosong';
+                  if (value.length < 6) return 'Password minimal 6 karakter';
+                  return null;
+                }
+              ),
               const SizedBox(height: 15),
-              _buildDateField(context),
+              _buildTextField(controller: _addressController, label: 'Alamat', hint: 'Masukkan alamat Anda', maxLines: 2),
               const SizedBox(height: 15),
-              _buildTextField(controller: _plateController, label: 'Plat Nomor', hint: 'K 5036 AZF'),
+              const Divider(thickness: 1, height: 30),
+              Text("Informasi Kendaraan Utama", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 15),
+              _buildTextField(controller: _plateController, label: 'Plat Nomor', hint: 'AB 1234 CD',
+                validator: (value) => (value == null || value.isEmpty) ? 'Plat Nomor tidak boleh kosong' : null
+              ),
               const SizedBox(height: 15),
               _buildDropdownField(
-                label: 'Brand',
+                label: 'Brand Kendaraan',
                 hint: 'Pilih Brand',
                 value: _selectedBrandId,
                 items: _brands,
                 onChanged: (value) {
                   setState(() {
                     _selectedBrandId = value;
-                    _selectedModelId = null;
-                    _currentModels = _models[_selectedBrandId!] ?? [];
+                    _selectedModelId = null; // Reset model
+                    _currentModels = _models[_selectedBrandId ?? ''] ?? [];
                   });
                 },
+                validator: (value) => (value == null) ? 'Brand wajib dipilih' : null
               ),
               const SizedBox(height: 15),
               if (_selectedBrandId != null && _currentModels.isNotEmpty)
                 _buildDropdownField(
-                  label: 'Model',
+                  label: 'Model Kendaraan',
                   hint: 'Pilih Model',
                   value: _selectedModelId,
                   items: _currentModels,
@@ -174,16 +192,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       _selectedModelId = value;
                     });
                   },
+                  validator: (value) => (value == null) ? 'Model wajib dipilih' : null
                 ),
               if (_selectedBrandId != null && _currentModels.isNotEmpty) const SizedBox(height: 15),
-              _buildTextField(controller: _odometerController, label: 'Odometer saat ini (km)', hint: '63589', keyboardType: TextInputType.number),
-              const SizedBox(height: 15),
-              _buildTextField(controller: _passwordController, label: 'Password', hint: '********', obscureText: true),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: _registerUser,
-                child: const Text('DAFTAR'),
+              _buildTextField(controller: _odometerController, label: 'Odometer Saat Ini (km)', hint: 'Contoh: 15000', keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value != null && value.isNotEmpty && int.tryParse(value) == null) {
+                    return 'Odometer harus angka';
+                  }
+                  return null; // Odometer bisa jadi opsional atau default 0
+                }
               ),
+              const SizedBox(height: 15),
+              _buildDateField(context), // Tanggal terakhir servis
+              const SizedBox(height: 30),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ElevatedButton(
+                      onPressed: _attemptRegister,
+                      child: const Text('DAFTAR'),
+                    ),
+              TextButton(
+                onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                child: const Text('Sudah punya akun? Login di sini'),
+              )
             ],
           ),
         ),
@@ -191,6 +223,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  // Helper widgets (_buildTextField, _buildDateField, _buildDropdownField)
+  // Pastikan helper widget ini ada di dalam class _RegisterScreenState atau bisa diakses
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -200,31 +234,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
     int maxLines = 1,
     String? Function(String?)? validator,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 14)),
-        const SizedBox(height: 5),
-        TextFormField(
-          controller: controller,
-          decoration: InputDecoration(hintText: hint),
-          keyboardType: keyboardType,
-          obscureText: obscureText,
-          maxLines: maxLines,
-          validator: validator ?? (value) {
-            if (value == null || value.isEmpty) {
-              return '$label tidak boleh kosong';
-            }
-            if (label == 'Email' && !value.contains('@')) {
-                return 'Format email tidak valid';
-            }
-            if (label.contains('Odometer') && int.tryParse(value) == null) {
-                return 'Odometer harus angka';
-            }
-            return null;
-          },
-        ),
-      ],
+    return TextFormField( // Menggunakan TextFormField untuk integrasi dengan Form
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        filled: true,
+        fillColor: Colors.white,
+      ),
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      maxLines: maxLines,
+      validator: validator ?? (value) {
+        if (value == null || value.isEmpty) {
+          // Beberapa field mungkin opsional, tangani di validator spesifik
+          // return '$label tidak boleh kosong';
+        }
+        return null;
+      },
     );
   }
 
@@ -232,13 +260,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tanggal Terakhir Servis', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 14)),
+        Text('Tanggal Terakhir Servis (Opsional)', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 14)),
         const SizedBox(height: 5),
         InkWell(
           onTap: () => _selectDate(context),
           child: InputDecorator(
             decoration: InputDecoration(
-              hintText: _selectedServiceDate == null ? 'dd/mm/yyyy' : null,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -247,19 +278,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   _selectedServiceDate == null
                       ? 'Pilih Tanggal'
                       : "${_selectedServiceDate!.day}/${_selectedServiceDate!.month}/${_selectedServiceDate!.year}",
-                  style: TextStyle(color: _selectedServiceDate == null ? Colors.grey[500] : Colors.black87),
+                  style: TextStyle(color: _selectedServiceDate == null ? Colors.grey[600] : Colors.black87),
                 ),
                 Icon(Icons.calendar_today, color: Colors.grey[600]),
               ],
             ),
           ),
         ),
-         // Tambahkan validator jika field ini wajib
-        // if (_selectedServiceDate == null && _formKey.currentState != null && _formKey.currentState!.validate())
-        // Padding(
-        //   padding: const EdgeInsets.only(top: 8.0),
-        //   child: Text("Tanggal servis wajib diisi", style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12)),
-        // )
       ],
     );
   }
@@ -267,34 +292,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
    Widget _buildDropdownField({
     required String label,
     required String hint,
-    required String? value,
+    required String? value, // Ini adalah ID dari DropdownOption
     required List<DropdownOption> items,
     required ValueChanged<String?> onChanged,
+    String? Function(String?)? validator,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 14)),
-        const SizedBox(height: 5),
-        DropdownButtonFormField<String>(
-          decoration: InputDecoration(hintText: hint),
-          value: value,
-          isExpanded: true,
-          items: items.map((DropdownOption item) {
-            return DropdownMenuItem<String>(
-              value: item.id,
-              child: Text(item.name),
-            );
-          }).toList(),
-          onChanged: onChanged,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return '$label belum dipilih';
-            }
-            return null;
-          },
-        ),
-      ],
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        filled: true,
+        fillColor: Colors.white,
+      ),
+      value: value,
+      isExpanded: true,
+      items: items.map((DropdownOption item) {
+        return DropdownMenuItem<String>(
+          value: item.id, // Simpan ID
+          child: Text(item.name), // Tampilkan Nama
+        );
+      }).toList(),
+      onChanged: onChanged,
+      validator: validator,
     );
   }
 }

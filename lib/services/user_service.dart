@@ -1,74 +1,239 @@
+// services/user_service.dart
+import 'dart:convert';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'package:location/location.dart'; // Jika masih menggunakan LocationData dari package location
-// import 'package:latlong2/latlong.dart'; // Jika menggunakan LatLng dari latlong2
 
 class UserService {
-  // Fungsi untuk mendaftar pengguna - PERLU PENYESUAIAN BESAR
-  Future<void> registerUser(
-    String name,
-    String email,
-    String address,
-    String motorModel, // Ini adalah model motor, bukan LatLng
-    // LatLng location, // Ubah tipe data jika perlu
-    { // Tambahkan parameter opsional bernama untuk field baru
-      String? plateNumber,
-      DateTime? lastServiceDate,
-      String? brand,
-      int? currentOdometer,
-      String? password,
+  // Replace with your actual API base URL.
+  // For Android emulator, if API is on localhost: http://10.0.2.2:PORT
+  // For iOS simulator, if API is on localhost: http://localhost:PORT
+  // If testing on a physical device, use your computer's network IP address.
+  final String _baseUrl = "http://127.0.0.1:3000/api"; // EXAMPLE FOR ANDROID EMULATOR
+
+  Future<Map<String, dynamic>> registerUser({
+    required String name,
+    required String email,
+    required String password,
+    required String address,
+    required String plateNumber, // Changed from optional
+    required String brand,       // Changed from optional
+    required String motorModel,    // Changed from optional
+    int? currentOdometer,
+    DateTime? lastServiceDate,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/users/register'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, dynamic>{
+          'name': name,
+          'email': email,
+          'password': password,
+          'address': address,
+          'plate_number': plateNumber,
+          'brand': brand,
+          'model': motorModel,
+          'current_odometer': currentOdometer,
+          'last_service_date': lastServiceDate?.toIso8601String().split('T')[0], // Send only YYYY-MM-DD
+        }),
+      );
+
+      final responseData = jsonDecode(response.body);
+      if (response.statusCode == 201) {
+        return {'success': true, 'data': responseData};
+      } else {
+        return {'success': false, 'message': responseData['message'] ?? 'Registration failed'};
+      }
+    } catch (e) {
+      print("Register User Exception: $e");
+      return {'success': false, 'message': 'Cannot connect to server: $e'};
     }
-  ) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('name', name);
-    await prefs.setString('email', email);
-    await prefs.setString('address', address);
-    await prefs.setString('motor_model', motorModel); // Ganti 'motor' menjadi 'motor_model'
-    // await prefs.setDouble('latitude', location.latitude);
-    // await prefs.setDouble('longitude', location.longitude);
-
-    if (plateNumber != null) await prefs.setString('plate_number', plateNumber);
-    if (lastServiceDate != null) await prefs.setString('last_service_date', lastServiceDate.toIso8601String());
-    if (brand != null) await prefs.setString('brand', brand);
-    if (currentOdometer != null) await prefs.setInt('odometer', currentOdometer); else await prefs.setInt('odometer', 0);
-    if (password != null) await prefs.setString('password', password); // Simpan password (pertimbangkan keamanan)
-
-    // Kilometer motor mulai dari 0 atau dari input pengguna
-    // prefs.setInt('kilometer', currentOdometer ?? 0); // Sudah dihandle oleh 'odometer'
   }
 
-  // Fungsi untuk mengambil data pengguna
-  Future<Map<String, dynamic>> getUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    return {
-      'name': prefs.getString('name') ?? '',
-      'email': prefs.getString('email') ?? '',
-      'address': prefs.getString('address') ?? '',
-      'motor_model': prefs.getString('motor_model') ?? '', // Ganti 'motor'
-      'plate_number': prefs.getString('plate_number') ?? '',
-      'last_service_date': prefs.getString('last_service_date'), // Ini string ISO, perlu parse ke DateTime
-      'brand': prefs.getString('brand') ?? '',
-      'odometer': prefs.getInt('odometer') ?? 0,
-      'password': prefs.getString('password') ?? '', // Ambil password
-      // 'latitude': prefs.getDouble('latitude') ?? 0.0,
-      // 'longitude': prefs.getDouble('longitude') ?? 0.0,
-      // 'kilometer': prefs.getInt('kilometer') ?? 0, // Sudah dihandle 'odometer'
-    };
+  Future<Map<String, dynamic>> loginUser({
+  required String email,
+  required String password,
+}) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/users/login'), // Pastikan _baseUrl sudah benar
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'email': email,
+        'password': password,
+      }),
+    );
+
+    final responseData = jsonDecode(response.body);
+    if (response.statusCode == 200) { // OK
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', responseData['token']);
+      await prefs.setInt('userId', responseData['user']['user_id']); // Simpan user_id
+      await prefs.setString('userName', responseData['user']['name']);
+      await prefs.setString('userEmail', responseData['user']['email']);
+      // Anda bisa menyimpan detail pengguna lain jika perlu
+      return {'success': true, 'data': responseData};
+    } else {
+      return {'success': false, 'message': responseData['message'] ?? 'Login gagal'};
+    }
+  } catch (e) {
+    print("Error Login User: $e");
+    return {'success': false, 'message': 'Tidak dapat terhubung ke server: $e'};
+  }
+}
+
+   Future<Map<String, dynamic>> getMyNotifications() async {
+    print("UserService: getMyNotifications called"); // DEBUG
+    try {
+      String? token = await getToken();
+      if (token == null) {
+        print("UserService: No token found for getMyNotifications"); // DEBUG
+        return {'success': false, 'message': 'User not authenticated.'};
+      }
+
+      print("UserService: Fetching notifications with token..."); // DEBUG
+      final response = await http.get(
+        Uri.parse('$_baseUrl/notifications/my-notifications'),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+      ).timeout(const Duration(seconds: 15)); // Tambahkan timeout untuk mencegah hang selamanya
+
+      print('Get Notifications Status Code: ${response.statusCode}'); // DEBUG
+      print('Get Notifications Body: ${response.body}'); // DEBUG
+
+      // Periksa jika body kosong sebelum decode, meskipun API yang baik akan tetap mengembalikan JSON ({}, [])
+      if (response.body.isEmpty) {
+        print("UserService: Empty response body from server."); //DEBUG
+        if (response.statusCode == 200) {
+             // Jika server mengembalikan 200 dengan body kosong, anggap sebagai data kosong
+             return {'success': true, 'data': []};
+        }
+        return {'success': false, 'message': 'Respons kosong dari server.'};
+      }
+
+      final responseData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        print("UserService: getMyNotifications success"); // DEBUG
+        return {'success': true, 'data': responseData};
+      } else {
+        print("UserService: getMyNotifications failed with status ${response.statusCode}"); // DEBUG
+        return {'success': false, 'message': responseData['message'] ?? 'Failed to fetch notifications from server'};
+      }
+    } catch (e, stackTrace) { // Tangkap stackTrace juga
+      print("GetMyNotifications Exception: $e"); // DEBUG
+      print("Stack Trace: $stackTrace"); // DEBUG
+      return {'success': false, 'message': 'Tidak dapat terhubung ke server atau terjadi kesalahan: $e'};
+    }
   }
 
-  // Fungsi untuk menghapus data pengguna (logout)
-  Future<void> clearUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    // Hapus semua kunci yang relevan atau gunakan prefs.clear() jika ingin menghapus semua
-    await prefs.remove('name');
-    await prefs.remove('email');
-    await prefs.remove('address');
-    await prefs.remove('motor_model');
-    await prefs.remove('plate_number');
-    await prefs.remove('last_service_date');
-    await prefs.remove('brand');
-    await prefs.remove('odometer');
-    await prefs.remove('password');
-    // await prefs.remove('latitude');
-    // await prefs.remove('longitude');
+  Future<String?> getToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
   }
+
+  Future<int?> getUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('userId');
+  }
+
+  Future<void> logoutUser() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('token');
+    await prefs.remove('userId');
+    await prefs.remove('userName');
+    await prefs.remove('userEmail');
+    // Clear other stored user data
+  }
+
+  Future<Map<String, dynamic>> getUserProfile() async {
+    try {
+      String? token = await getToken();
+      if (token == null) return {'success': false, 'message': 'Belum login'};
+
+      final response = await http.get(
+        Uri.parse('$_baseUrl/users/profile'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      final responseData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': responseData};
+      } else {
+        return {'success': false, 'message': responseData['message'] ?? 'Gagal mengambil profil'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateUserName(String newName) async {
+    try {
+      String? token = await getToken();
+      if (token == null) return {'success': false, 'message': 'Belum login'};
+
+      final response = await http.put(
+        Uri.parse('$_baseUrl/users/profile'),
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'name': newName}),
+      );
+      final responseData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        // Update nama di SharedPreferences juga
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userName', responseData['user']['name']);
+        return {'success': true, 'data': responseData};
+      } else {
+        return {'success': false, 'message': responseData['message'] ?? 'Gagal update nama'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error: $e'};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateUserProfilePicture(File imageFile) async {
+    try {
+      String? token = await getToken();
+      if (token == null) return {'success': false, 'message': 'Belum login'};
+
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$_baseUrl/users/profile/picture'),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'profilePicture', // Nama field yang sama dengan di backend (upload.single('profilePicture'))
+          imageFile.path,
+          contentType: MediaType('image', imageFile.path.split('.').last), // Dapatkan ekstensi
+        ),
+      );
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+         // Simpan URL foto baru ke SharedPreferences jika perlu untuk update cepat di UI lain
+        // SharedPreferences prefs = await SharedPreferences.getInstance();
+        // await prefs.setString('userPhotoUrl', responseData['filePath']);
+        return {'success': true, 'data': responseData};
+      } else {
+        return {'success': false, 'message': responseData['message'] ?? 'Gagal unggah foto'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error: $e'};
+    }
+  }
+
+  // This replaces your old getUserData from SharedPreferences for data that now comes from the DB
+  // You'll likely call specific endpoints for specific data (e.g., vehicles, profile)
+  // For a simple profile data, you might have a /api/users/profile endpoint
+  // Or just use the data returned from login and stored in SharedPreferences for display.
 }
