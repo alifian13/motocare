@@ -20,9 +20,11 @@ class _HomeScreenState extends State<HomeScreen> {
   final VehicleService _vehicleService = VehicleService();
 
   UserData? _displayData;
-  Vehicle? _primaryVehicle; // Jadikan ini state variable untuk data kendaraan utama
+  Vehicle?
+      _primaryVehicle; // Jadikan ini state variable untuk data kendaraan utama
   bool _isLoading = true;
-  String _userNameForAppBar = "Pengguna"; // Untuk AppBar, bisa juga dari _displayData
+  String _userNameForAppBar =
+      "Pengguna"; // Untuk AppBar, bisa juga dari _displayData
   String _appBarTitle = "MotoCare Dashboard";
 
   @override
@@ -51,9 +53,11 @@ class _HomeScreenState extends State<HomeScreen> {
         List<dynamic> vehicleListJson = vehicleResult['data'] as List<dynamic>;
         if (vehicleListJson.isNotEmpty) {
           if (vehicleListJson.first is Map<String, dynamic>) {
-            fetchedPrimaryVehicle = Vehicle.fromJson(vehicleListJson.first as Map<String, dynamic>);
+            fetchedPrimaryVehicle =
+                Vehicle.fromJson(vehicleListJson.first as Map<String, dynamic>);
           } else {
-            print("Error: Format data kendaraan pertama tidak sesuai (bukan Map).");
+            print(
+                "Error: Format data kendaraan pertama tidak sesuai (bukan Map).");
           }
         }
       } else {
@@ -65,7 +69,11 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() {
         _primaryVehicle = fetchedPrimaryVehicle; // Update state _primaryVehicle
         _displayData = UserData.combine(
-          {'name': _userNameForAppBar, 'email': userEmail, 'userPhotoUrl': userPhotoUrlFromPrefs},
+          {
+            'name': _userNameForAppBar,
+            'email': userEmail,
+            'userPhotoUrl': userPhotoUrlFromPrefs
+          },
           _primaryVehicle,
         );
         _appBarTitle = _primaryVehicle?.model ?? 'MotoCare Dashboard';
@@ -75,7 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (vehicleResult['success'] == false && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(vehicleResult['message'] ?? 'Gagal memuat data kendaraan.')),
+        SnackBar(
+            content: Text(
+                vehicleResult['message'] ?? 'Gagal memuat data kendaraan.')),
       );
     }
   }
@@ -102,14 +112,17 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: const AppDrawer(),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _primaryVehicle == null // Gunakan _primaryVehicle untuk cek data kendaraan
+          : _primaryVehicle ==
+                  null // Gunakan _primaryVehicle untuk cek data kendaraan
               ? Center(
                   child: Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.no_transfer_rounded, size: 60, color: Colors.grey), // Icon yang lebih relevan
+                        const Icon(Icons.no_transfer_rounded,
+                            size: 60,
+                            color: Colors.grey), // Icon yang lebih relevan
                         const SizedBox(height: 16),
                         const Text(
                           'Anda belum memiliki kendaraan terdaftar atau gagal memuat data.',
@@ -124,7 +137,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             // TODO: Navigasi ke halaman tambah kendaraan
                             // Navigator.pushNamed(context, '/add-vehicle').then((_) => _loadInitialDashboardData());
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Fitur tambah kendaraan belum ada.')),
+                              const SnackBar(
+                                  content: Text(
+                                      'Fitur tambah kendaraan belum ada.')),
                             );
                           },
                         ),
@@ -137,7 +152,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 )
-              : RefreshIndicator( // Hanya tampilkan jika _primaryVehicle tidak null
+              : RefreshIndicator(
+                  // Hanya tampilkan jika _primaryVehicle tidak null
                   onRefresh: _loadInitialDashboardData,
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(16.0),
@@ -152,10 +168,13 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 20),
                         _buildServiceInfoCard(
                           title: "Perawatan Terakhir",
-                          lastServiceDate: _displayData!.formattedLastServiceDate, // ! aman di sini
-                          nextServiceInfo: "Penggantian Oli Selanjutnya", // Perlu logika
-                          daysRemaining: "Estimasi 72 Hari Lagi", // Perlu logika
-                          kmRemaining: "Estimasi 1558 Km Lagi",   // Perlu logika
+                          lastServiceDate: _displayData!
+                              .formattedLastServiceDate, // ! aman di sini
+                          nextServiceInfo:
+                              "Penggantian Oli Selanjutnya", // Perlu logika
+                          daysRemaining:
+                              "Estimasi 72 Hari Lagi", // Perlu logika
+                          kmRemaining: "Estimasi 1558 Km Lagi", // Perlu logika
                           icon: Icons.opacity,
                         ),
                         const SizedBox(height: 30),
@@ -166,19 +185,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
     );
   }
-final String _baseImageUrl = "http://127.0.0.1:3000";
+
+  final String _baseImageUrl = "http://127.0.0.1:3000";
   Widget _buildProfileHeader() {
     // _displayData dijamin tidak null di sini karena logika di build()
-    String? userPhotoPath = _displayData?.userPhotoUrl; // Asumsi Anda menambahkan userPhotoUrl ke UserData
+    String? userPhotoPath = _displayData
+        ?.userPhotoUrl; // Asumsi Anda menambahkan userPhotoUrl ke UserData
     String? vehicleLogoPath = _displayData?.vehicleLogoUrl;
     return Row(
       children: [
         CircleAvatar(
           radius: 30,
-          backgroundColor: Colors.grey.shade300, // Warna fallback jika tidak ada gambar
+          backgroundColor:
+              Colors.grey.shade300, // Warna fallback jika tidak ada gambar
           backgroundImage: (userPhotoPath != null && userPhotoPath.isNotEmpty)
-              ? NetworkImage(_baseImageUrl + userPhotoPath) // Muat dari network jika ada URL
-              : const AssetImage('assets/images/default_avatar.png') as ImageProvider, // Gambar default lokal
+              ? NetworkImage(_baseImageUrl +
+                  userPhotoPath) // Muat dari network jika ada URL
+              : const AssetImage('assets/images/default_avatar.png')
+                  as ImageProvider, // Gambar default lokal
           // Jika Anda ingin placeholder berupa ikon jika tidak ada gambar:
           // child: (userPhotoPath == null || userPhotoPath.isEmpty)
           //     ? Icon(Icons.person, size: 30, color: Colors.grey.shade700)
@@ -191,7 +215,8 @@ final String _baseImageUrl = "http://127.0.0.1:3000";
             children: [
               Text(
                 _displayData?.name ?? "Nama Pengguna",
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
@@ -209,25 +234,33 @@ final String _baseImageUrl = "http://127.0.0.1:3000";
             child: Image.network(
               _baseImageUrl + vehicleLogoPath,
               // --- UBAH UKURAN DI SINI ---
-              height: 100, // Misalnya, perbesar menjadi tinggi 50 (sebelumnya 35)
-              width: 100,  // Anda juga bisa mengatur width jika ingin ukuran yang pasti
-                           // Atau biarkan width null agar mengikuti rasio aspek gambar berdasarkan height
-              fit: BoxFit.contain, // Memastikan gambar tetap dalam batas dan tidak terpotong aneh
+              height:
+                  200, // Misalnya, perbesar menjadi tinggi 50 (sebelumnya 35)
+              width:
+                  200, // Anda juga bisa mengatur width jika ingin ukuran yang pasti
+              // Atau biarkan width null agar mengikuti rasio aspek gambar berdasarkan height
+              fit: BoxFit
+                  .contain, // Memastikan gambar tetap dalam batas dan tidak terpotong aneh
               // --- BATAS PERUBAHAN UKURAN ---
               errorBuilder: (context, error, stackTrace) {
                 print("Error loading vehicle logo: $error");
-                return Icon(Icons.motorcycle, size: 30, color: Colors.grey.shade400); // Sesuaikan ukuran ikon error juga jika perlu
+                return Icon(Icons.motorcycle,
+                    size: 30,
+                    color: Colors.grey
+                        .shade400); // Sesuaikan ukuran ikon error juga jika perlu
               },
-              loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+              loadingBuilder: (BuildContext context, Widget child,
+                  ImageChunkEvent? loadingProgress) {
                 if (loadingProgress == null) return child;
                 return SizedBox(
-                  height: 100, // Sesuaikan dengan height di atas
-                  width: 100,  // Sesuaikan dengan width di atas
+                  height: 200, // Sesuaikan dengan height di atas
+                  width: 200, // Sesuaikan dengan width di atas
                   child: Center(
                     child: CircularProgressIndicator(
                       strokeWidth: 2.0,
                       value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
                           : null,
                     ),
                   ),
@@ -237,19 +270,26 @@ final String _baseImageUrl = "http://127.0.0.1:3000";
           )
         else if (_primaryVehicle != null)
           Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Chip(
-              avatar: Icon(Icons.motorcycle, size: 18, color: Theme.of(context).primaryColorDark), // Bisa perbesar sedikit
-              label: Text(
-                _displayData?.brand ?? 'Motor',
-                style: TextStyle(fontSize: 12, color: Theme.of(context).primaryColorDark), // Bisa perbesar sedikit font
-              ),
-              backgroundColor: Theme.of(context).primaryColorLight.withOpacity(0.5),
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Sesuaikan padding
-              labelPadding: const EdgeInsets.only(left: 2.0, right: 4.0),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            )
-          ),
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Chip(
+                avatar: Icon(Icons.motorcycle,
+                    size: 18,
+                    color: Theme.of(context)
+                        .primaryColorDark), // Bisa perbesar sedikit
+                label: Text(
+                  _displayData?.brand ?? 'Motor',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context)
+                          .primaryColorDark), // Bisa perbesar sedikit font
+                ),
+                backgroundColor:
+                    Theme.of(context).primaryColorLight.withOpacity(0.5),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 8, vertical: 4), // Sesuaikan padding
+                labelPadding: const EdgeInsets.only(left: 2.0, right: 4.0),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              )),
       ],
     );
   }
@@ -264,12 +304,18 @@ final String _baseImageUrl = "http://127.0.0.1:3000";
           children: [
             const Text(
               "Odometer Saat Ini",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueGrey),
             ),
             const SizedBox(height: 8),
             Text(
               "${_displayData!.currentOdometer} km",
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor),
+              style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).primaryColor),
             ),
             // TODO: Tombol update odometer
           ],
@@ -288,7 +334,7 @@ final String _baseImageUrl = "http://127.0.0.1:3000";
   }) {
     return Card(
       // ... (Implementasi widget ini sama seperti sebelumnya, aman karena _displayData sudah dipastikan)
-       child: Padding(
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,20 +345,31 @@ final String _baseImageUrl = "http://127.0.0.1:3000";
                 const SizedBox(width: 10),
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-            Text("Servis Terakhir: $lastServiceDate", style: TextStyle(color: Colors.grey[600])),
+            Text("Servis Terakhir: $lastServiceDate",
+                style: TextStyle(color: Colors.grey[600])),
             const Divider(height: 20, thickness: 1),
-            Text(nextServiceInfo, style: const TextStyle(fontWeight: FontWeight.w500)),
+            Text(nextServiceInfo,
+                style: const TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(daysRemaining, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
-                Text(kmRemaining, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
+                Text(daysRemaining,
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orangeAccent)),
+                Text(kmRemaining,
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green)),
               ],
             ),
           ],
@@ -341,7 +398,9 @@ final String _baseImageUrl = "http://127.0.0.1:3000";
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Data kendaraan tidak tersedia untuk melihat riwayat.')),
+                const SnackBar(
+                    content: Text(
+                        'Data kendaraan tidak tersedia untuk melihat riwayat.')),
               );
             }
           },
@@ -349,7 +408,8 @@ final String _baseImageUrl = "http://127.0.0.1:3000";
         _buildNavigationButton(
           icon: Icons.event_note,
           label: "Jadwal\nPerawatan",
-          onTap: () { // PERBAIKI BAGIAN INI
+          onTap: () {
+            // PERBAIKI BAGIAN INI
             if (_primaryVehicle != null && _primaryVehicle!.vehicleId != null) {
               Navigator.pushNamed(
                 context,
@@ -358,7 +418,9 @@ final String _baseImageUrl = "http://127.0.0.1:3000";
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Data kendaraan tidak tersedia untuk melihat jadwal.')),
+                const SnackBar(
+                    content: Text(
+                        'Data kendaraan tidak tersedia untuk melihat jadwal.')),
               );
             }
           },
@@ -372,7 +434,10 @@ final String _baseImageUrl = "http://127.0.0.1:3000";
     );
   }
 
-  Widget _buildNavigationButton({required IconData icon, required String label, required VoidCallback onTap}) {
+  Widget _buildNavigationButton(
+      {required IconData icon,
+      required String label,
+      required VoidCallback onTap}) {
     // ... (Implementasi widget ini sama seperti sebelumnya)
     return InkWell(
       onTap: onTap,

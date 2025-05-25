@@ -151,24 +151,45 @@ class UserService {
   }
 
   Future<Map<String, dynamic>> getUserProfile() async {
-    try {
-      String? token = await getToken();
-      if (token == null) return {'success': false, 'message': 'Belum login'};
-
-      final response = await http.get(
-        Uri.parse('$_baseUrl/users/profile'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-      final responseData = jsonDecode(response.body);
-      if (response.statusCode == 200) {
-        return {'success': true, 'data': responseData};
-      } else {
-        return {'success': false, 'message': responseData['message'] ?? 'Gagal mengambil profil'};
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Error: $e'};
+  print("UserService: getUserProfile called"); // DEBUG
+  try {
+    String? token = await getToken();
+    if (token == null) {
+      print("UserService: No token for getUserProfile"); // DEBUG
+      return {'success': false, 'message': 'Belum login'};
     }
+
+    print("UserService: Fetching profile with token..."); // DEBUG
+    final response = await http.get(
+      Uri.parse('$_baseUrl/users/profile'),
+      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+    ).timeout(const Duration(seconds: 15));
+
+    print('Get UserProfile Status Code: ${response.statusCode}'); // DEBUG
+    print('Get UserProfile Body: ${response.body}'); // DEBUG
+
+    if (response.body.isEmpty) {
+      print("UserService: Empty response body for profile."); //DEBUG
+      if (response.statusCode == 200) {
+           return {'success': true, 'data': {}}; // atau null, tergantung bagaimana Anda mau handle
+      }
+      return {'success': false, 'message': 'Respons profil kosong dari server.'};
+    }
+
+    final responseData = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      print("UserService: getUserProfile success"); // DEBUG
+      return {'success': true, 'data': responseData};
+    } else {
+      print("UserService: getUserProfile failed with status ${response.statusCode}"); // DEBUG
+      return {'success': false, 'message': responseData['message'] ?? 'Gagal mengambil profil'};
+    }
+  } catch (e, stackTrace) {
+    print("GetUserProfile Exception: $e"); // DEBUG
+    print("Stack Trace: $stackTrace"); // DEBUG
+    return {'success': false, 'message': 'Error: $e'};
   }
+}
 
   Future<Map<String, dynamic>> updateUserName(String newName) async {
     try {
