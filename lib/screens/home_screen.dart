@@ -90,9 +90,15 @@ class _HomeScreenState extends State<HomeScreen> {
         _isLoading = false;
       });
 
-      if (_currentVehicleIdForTracking != null) {
+      bool isCurrentlyTracking = _locationService.isTrackingActive(); // Anda perlu menambahkan metode ini di LocationService
+      if (_currentVehicleIdForTracking != null && !isCurrentlyTracking) {
         print("Memulai pelacakan untuk kendaraan: $_currentVehicleIdForTracking");
         _locationService.startTracking(context, _handleTripDetected);
+      } else if (_currentVehicleIdForTracking == null && isCurrentlyTracking) {
+         _locationService.stopTracking();
+         print("Pelacakan dihentikan karena tidak ada kendaraan aktif.");
+      } else if (_currentVehicleIdForTracking != null && isCurrentlyTracking) {
+        print("Pelacakan sudah aktif untuk kendaraan: $_currentVehicleIdForTracking");
       } else {
         print("Tidak ada kendaraan aktif, pelacakan tidak dimulai.");
       }
@@ -334,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildOdometerCard(),
                         const SizedBox(height: 20),
                         _buildServiceInfoCard(
-                          title: "Perawatan Oli Mesin",
+                          title: "Oli Mesin",
                           lastServiceDate: _displayData?.formattedLastServiceDate ?? "N/A",
                           nextServiceInfo: "Penggantian Oli Selanjutnya",
                           daysRemaining: "Estimasi - Hari Lagi",
@@ -486,12 +492,24 @@ class _HomeScreenState extends State<HomeScreen> {
     required String daysRemaining,
     required String kmRemaining,
     required IconData icon,
+    String? status, // Tambahkan parameter status
   }) {
-    if (_displayData == null) {
-        return Card(child: Padding(padding: const EdgeInsets.all(16), child: Text("$title: Data tidak tersedia")));
+    Color cardColor = Colors.white;
+    Color statusTextColor = Colors.grey;
+
+    if (status != null) {
+        if (status.toUpperCase() == "OVERDUE") {
+            cardColor = Colors.red.shade50;
+            statusTextColor = Colors.red.shade700;
+        } else if (status.toUpperCase() == "UPCOMING") {
+            cardColor = Colors.orange.shade50;
+            statusTextColor = Colors.orange.shade700;
+        }
     }
+
     return Card(
-      elevation: 3,
+      elevation: 2,
+      color: cardColor, // Warna kartu berdasarkan status
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -509,15 +527,15 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 10),
-            Text("Servis Terakhir: $lastServiceDate", style: TextStyle(color: Colors.grey[600])),
+            Text("Servis Terakhir Umum: $lastServiceDate", style: TextStyle(color: Colors.grey[600], fontSize: 12)), // Catatan: ini masih umum
             const Divider(height: 20, thickness: 1),
             Text(nextServiceInfo, style: const TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(daysRemaining, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
-                Text(kmRemaining, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green)),
+                Text(daysRemaining, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: statusTextColor)),
+                Text(kmRemaining, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green.shade600)),
               ],
             ),
           ],

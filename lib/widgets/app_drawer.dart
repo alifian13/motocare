@@ -1,6 +1,7 @@
 // lib/widgets/app_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../screens/contact_us_screen.dart';
 import '../services/user_service.dart'; // Untuk logout
 
 class AppDrawer extends StatefulWidget {
@@ -75,11 +76,7 @@ class _AppDrawerState extends State<AppDrawer> {
             title: const Text('Contact Us'),
             onTap: () {
               Navigator.pop(context); // Tutup drawer
-              // TODO: Navigasi ke halaman Contact Us jika sudah dibuat
-              // Navigator.pushNamed(context, '/contact-us');
-               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Halaman Contact Us (belum diimplementasi)')),
-              );
+              Navigator.pushNamed(context, ContactUsScreen.routeName);
             },
           ),
           const Divider(), // Pemisah sebelum logout

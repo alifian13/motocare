@@ -11,6 +11,7 @@ import 'screens/history_screen.dart';
 import 'screens/schedule_screen.dart';
 import 'screens/notification_list_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/contact_us_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -101,6 +102,7 @@ class MotorApp extends StatelessWidget {
         },
         NotificationListScreen.routeName: (context) => const NotificationListScreen(),
         ProfileScreen.routeName: (context) => const ProfileScreen(),
+        ContactUsScreen.routeName: (context) => const ContactUsScreen(),
       },
     );
   }

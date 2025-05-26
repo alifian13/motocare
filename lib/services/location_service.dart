@@ -31,7 +31,11 @@ class LocationService {
   int _consecutiveHighSpeedPoints = 0;
   int _consecutiveLowSpeedPoints = 0;
 
-  final VehicleService _vehicleService = VehicleService(); // Untuk memanggil addTrip
+  // final VehicleService _vehicleService = VehicleService(); // Untuk memanggil addTrip
+
+  bool isTrackingActive() {
+    return _locationSubscription != null && !_locationSubscription!.isPaused;
+  }
 
   Future<bool> _checkAndRequestPermissions() async {
     bool serviceEnabled;
