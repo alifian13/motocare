@@ -1,159 +1,116 @@
 // lib/models/user_data_model.dart
 import 'package:intl/intl.dart';
+import 'vehicle_model.dart'; // <-- IMPOR Vehicle DARI SINI
 
-// Model untuk Pengguna (dari API /api/users/profile atau respons login)
-class UserModel {
-  final int userId;
-  final String name;
-  final String email;
-  final String? address;
-  final String? photoUrl; // URL lengkap atau path relatif dari server
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
+class UserData {
+  final String? name;
+  final String? email;
+  final String? address; // Tambahkan jika ada di profil
+  final String? userPhotoUrl; // Foto pengguna dari User model
+  final Vehicle? vehicle; // <-- GUNAKAN Vehicle YANG SUDAH DIIMPOR
 
-  UserModel({
-    required this.userId,
-    required this.name,
-    required this.email,
+  // Informasi spesifik kendaraan yang mungkin ingin ditampilkan bersamaan
+  final String? plateNumber;
+  final String? brand;
+  final String? vehicleModel; // Menggunakan vehicleModel agar tidak bentrok dengan model class
+  final int? currentOdometer;
+  final String? lastServiceDate; // String YYYY-MM-DD
+  final String? vehiclePhotoUrl; // Foto kendaraan dari Vehicle model
+  final String? vehicleLogoUrl; // Logo kendaraan
+
+  UserData({
+    this.name,
+    this.email,
     this.address,
-    this.photoUrl,
-    this.createdAt,
-    this.updatedAt,
-  });
-
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      userId: json['user_id'] as int,
-      name: json['name'] as String? ?? 'Nama Pengguna',
-      email: json['email'] as String? ?? '',
-      address: json['address'] as String?,
-      photoUrl: json['photo_url'] as String?,
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
-    );
-  }
-
-  // Fungsi untuk mengkonversi ke Map, berguna jika ingin menyimpan ke SharedPreferences
-  Map<String, dynamic> toJson() {
-    return {
-      'user_id': userId,
-      'name': name,
-      'email': email,
-      'address': address,
-      'photo_url': photoUrl,
-      // Anda mungkin tidak perlu menyimpan tanggal ke SharedPreferences
-    };
-  }
-}
-
-// Model untuk Kendaraan (dari API /api/vehicles/my-vehicles)
-class Vehicle {
-  final int vehicleId;
-  final int userId;
-  final String plateNumber;
-  final String brand;
-  final String model;
-  final int currentOdometer;
-  final DateTime? lastOdometerUpdate;
-  final DateTime? lastServiceDate; // Tanggal servis umum terakhir
-  final String? photoUrl; // Foto kendaraan (jika ada)
-  final String? logoUrl;  // URL logo brand/model dari server
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  Vehicle({
-    required this.vehicleId,
-    required this.userId,
-    required this.plateNumber,
-    required this.brand,
-    required this.model,
-    required this.currentOdometer,
-    this.lastOdometerUpdate,
-    this.lastServiceDate,
-    this.photoUrl,
-    this.logoUrl,
-    this.createdAt,
-    this.updatedAt,
-  });
-
-  factory Vehicle.fromJson(Map<String, dynamic> json) {
-    return Vehicle(
-      vehicleId: json['vehicle_id'] as int,
-      userId: json['user_id'] as int,
-      plateNumber: json['plate_number'] as String? ?? 'N/A',
-      brand: json['brand'] as String? ?? 'N/A',
-      model: json['model'] as String? ?? 'N/A',
-      currentOdometer: json['current_odometer'] as int? ?? 0,
-      lastOdometerUpdate: json['last_odometer_update'] != null
-          ? DateTime.tryParse(json['last_odometer_update'])
-          : null,
-      lastServiceDate: json['last_service_date'] != null
-          ? DateTime.tryParse(json['last_service_date'])
-          : null,
-      photoUrl: json['photo_url'] as String?,
-      logoUrl: json['logo_url'] as String?,
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.tryParse(json['updatedAt']) : null,
-    );
-  }
-
-  String get formattedLastServiceDate {
-    if (lastServiceDate == null) return "Belum ada data";
-    try {
-      return DateFormat('dd/MM/yyyy').format(lastServiceDate!);
-    } catch (e) {
-      return "Format tanggal salah";
-    }
-  }
-}
-
-// UserData bisa menjadi kelas helper untuk menggabungkan data tampilan di HomeScreen
-// jika Anda masih ingin pendekatan itu, atau Anda bisa langsung menggunakan UserModel dan Vehicle.
-// Untuk saat ini, kita akan fokus menggunakan UserModel dan Vehicle secara terpisah.
-// Jika Anda ingin UserData.combine, pastikan ia menerima UserModel dan Vehicle.
-class UserDataForDisplay {
-  final String name;
-  final String email;
-  final String? userPhotoUrl;
-  final String vehicleModel;
-  final String plateNumber;
-  final DateTime? vehicleLastServiceDate;
-  final String vehicleBrand;
-  final int vehicleCurrentOdometer;
-  final String? vehicleLogoUrl;
-
-  UserDataForDisplay({
-    required this.name,
-    required this.email,
     this.userPhotoUrl,
-    required this.vehicleModel,
-    required this.plateNumber,
-    this.vehicleLastServiceDate,
-    required this.vehicleBrand,
-    required this.vehicleCurrentOdometer,
+    this.vehicle,
+    this.plateNumber,
+    this.brand,
+    this.vehicleModel,
+    this.currentOdometer,
+    this.lastServiceDate,
+    this.vehiclePhotoUrl,
     this.vehicleLogoUrl,
   });
 
-  factory UserDataForDisplay.fromModels(UserModel? user, Vehicle? vehicle) {
-    return UserDataForDisplay(
-      name: user?.name ?? "Pengguna",
-      email: user?.email ?? "",
-      userPhotoUrl: user?.photoUrl,
-      vehicleModel: vehicle?.model ?? "N/A",
-      plateNumber: vehicle?.plateNumber ?? "N/A",
-      vehicleLastServiceDate: vehicle?.lastServiceDate,
-      vehicleBrand: vehicle?.brand ?? "N/A",
-      vehicleCurrentOdometer: vehicle?.currentOdometer ?? 0,
-      vehicleLogoUrl: vehicle?.logoUrl,
+  // Helper untuk memformat tanggal
+  String? get formattedLastServiceDate {
+    if (lastServiceDate == null || lastServiceDate!.isEmpty) return "N/A";
+    try {
+      final date = DateFormat("yyyy-MM-dd").parse(lastServiceDate!);
+      return DateFormat("dd MMMM yyyy", "id_ID").format(date); // Format Indonesia
+    } catch (e) {
+      return lastServiceDate; // Kembalikan tanggal asli jika parsing gagal
+    }
+  }
+
+  // Factory constructor untuk membuat UserData dari JSON (misalnya dari endpoint /profile)
+  factory UserData.fromJson(Map<String, dynamic> json) {
+    // Jika endpoint /profile juga mengembalikan detail kendaraan utama,
+    // Anda bisa mem-parse-nya di sini juga.
+    // Untuk contoh ini, kita fokus pada data User.
+    // Asumsi Vehicle dipisah dan akan di-combine.
+    return UserData(
+      name: json['name'] as String?,
+      email: json['email'] as String?,
+      address: json['address'] as String?,
+      userPhotoUrl: json['photo_url'] as String?, // Sesuaikan dengan field di backend
+      // Vehicle akan di-combine
     );
   }
 
-   String get formattedVehicleLastServiceDate {
-    if (vehicleLastServiceDate == null) return "Belum ada data";
-    try {
-      return DateFormat('dd/MM/yyyy').format(vehicleLastServiceDate!);
-    } catch (e) {
-      return "Format tanggal salah";
-    }
+  // Metode untuk menggabungkan data User dan Vehicle (jika primary vehicle diketahui)
+  // Metode ini dari file Anda, sudah baik.
+  static UserData combine(Map<String, dynamic>? userDataJson, Vehicle? primaryVehicle) {
+    return UserData(
+      name: userDataJson?['name'] as String?,
+      email: userDataJson?['email'] as String?,
+      userPhotoUrl: userDataJson?['userPhotoUrl'] as String?, // Dari SharedPreferences atau state
+      address: userDataJson?['address'] as String?, // Jika ada
+      vehicle: primaryVehicle, // Objek Vehicle lengkap
+      plateNumber: primaryVehicle?.plateNumber,
+      brand: primaryVehicle?.brand,
+      vehicleModel: primaryVehicle?.model,
+      currentOdometer: primaryVehicle?.currentOdometer,
+      lastServiceDate: primaryVehicle?.lastServiceDate,
+      vehiclePhotoUrl: primaryVehicle?.photoUrl,
+      vehicleLogoUrl: primaryVehicle?.logoUrl,
+    );
   }
 }
+
+// HAPUS DEFINISI KELAS Vehicle DARI FILE INI JIKA ADA SEBELUMNYA
+// class Vehicle {
+//   final int vehicleId;
+//   final String plateNumber;
+//   final String brand;
+//   final String model;
+//   final int currentOdometer; // dibuat final
+//   final String? lastServiceDate;
+//   final String? photoUrl;
+//   final String? logoUrl;
+
+//   Vehicle({
+//     required this.vehicleId,
+//     required this.plateNumber,
+//     required this.brand,
+//     required this.model,
+//     required this.currentOdometer,
+//     this.lastServiceDate,
+//     this.photoUrl,
+//     this.logoUrl,
+//   });
+
+//   factory Vehicle.fromJson(Map<String, dynamic> json) {
+//     return Vehicle(
+//       vehicleId: json['vehicle_id'] as int,
+//       plateNumber: json['plate_number'] as String,
+//       brand: json['brand'] as String,
+//       model: json['model'] as String,
+//       currentOdometer: (json['current_odometer'] as num?)?.toInt() ?? 0,
+//       lastServiceDate: json['last_service_date'] as String?,
+//       photoUrl: json['photo_url'] as String?,
+//       logoUrl: json['logo_url'] as String?,
+//     );
+//   }
+// }

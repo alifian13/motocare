@@ -1,6 +1,7 @@
+// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/profile_screen.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 // Import semua screen Anda
 import 'screens/home_screen.dart';
@@ -9,11 +10,12 @@ import 'screens/login_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/schedule_screen.dart';
 import 'screens/notification_list_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  // Cek apakah token ada untuk menentukan status login
   String? token = prefs.getString('token');
 
   runApp(MotorApp(isLoggedIn: token != null && token.isNotEmpty));
@@ -65,35 +67,40 @@ class MotorApp extends StatelessWidget {
           ),
         ),
       ),
-      initialRoute: isLoggedIn ? '/home' : '/login',
+      initialRoute: isLoggedIn ? HomeScreen.routeName : LoginScreen.routeName,
       routes: {
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegisterScreen(),
-        '/home': (context) => const HomeScreen(),
-        '/history': (context) {
+        LoginScreen.routeName: (context) => const LoginScreen(),
+        RegisterScreen.routeName: (context) => const RegisterScreen(),
+        HomeScreen.routeName: (context) => const HomeScreen(),
+        HistoryScreen.routeName: (context) {
           final arguments = ModalRoute.of(context)!.settings.arguments;
-          // Pastikan arguments adalah int atau handle jika null/salah tipe
-          if (arguments is int) {
-            return HistoryScreen(vehicleId: arguments);
+          if (arguments is String) {
+            final vehicleIdInt = int.tryParse(arguments);
+            if (vehicleIdInt != null) {
+              return HistoryScreen(vehicleId: vehicleIdInt);
+            }
+          } else if (arguments is int) {
+             return HistoryScreen(vehicleId: arguments);
           }
-          // Fallback jika argumen tidak ada atau salah tipe
-          // Anda bisa mengarahkan ke halaman error atau halaman utama dengan pesan
           return Scaffold(
-              appBar: AppBar(title: Text("Error")),
-              body: Center(child: Text("ID Kendaraan tidak valid atau tidak ditemukan untuk History.")));
+              appBar: AppBar(title: const Text("Error Navigasi")),
+              body: const Center(child: Text("ID Kendaraan tidak valid untuk Riwayat.")));
         },
-        '/schedule': (context) {
+        ScheduleScreen.routeName: (context) {
           final arguments = ModalRoute.of(context)!.settings.arguments;
-          if (arguments is int) {
+          // ScheduleScreen mengharapkan String untuk vehicleId
+          if (arguments is String) {
             return ScheduleScreen(vehicleId: arguments);
+          } else if (arguments is int) {
+            // Konversi int ke String jika dikirim sebagai int
+            return ScheduleScreen(vehicleId: arguments.toString());
           }
-          // Fallback
           return Scaffold(
-              appBar: AppBar(title: Text("Error")),
-              body: Center(child: Text("ID Kendaraan tidak valid atau tidak ditemukan untuk Jadwal.")));
+              appBar: AppBar(title: const Text("Error Navigasi")),
+              body: const Center(child: Text("ID Kendaraan tidak valid untuk Jadwal.")));
         },
-        '/notifications': (context) => const NotificationListScreen(),
-        '/profile': (context) => const ProfileScreen(),
+        NotificationListScreen.routeName: (context) => const NotificationListScreen(),
+        ProfileScreen.routeName: (context) => const ProfileScreen(),
       },
     );
   }

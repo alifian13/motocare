@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/user_service.dart';
+import '../models/user_data_model.dart'; // <-- TAMBAHKAN IMPOR UserData
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+  static const routeName = '/profile'; // Tambahkan routeName
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -26,11 +28,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   bool _isUploading = false;
   bool _isEditingName = false;
-  String? _errorMessage; // <-- DEKLARASIKAN _errorMessage DI SINI
+  String? _errorMessage;
 
-  // URL dasar untuk menampilkan gambar dari backend
-  // Gunakan 10.0.2.2 untuk Android Emulator jika backend di localhost komputer Anda
-  final String _baseImageUrl = "http://10.0.2.2:3000"; // <-- PERBAIKI INI JIKA PERLU
+  final String _baseImageUrl = "http://127.0.0.1:3000"; // Sesuaikan jika backend Anda di alamat lain
 
   @override
   void initState() {
@@ -48,20 +48,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
     setState(() {
       _isLoading = true;
-      _errorMessage = null; // Reset pesan error setiap kali load
+      _errorMessage = null;
     });
 
-    final result = await _userService.getUserProfile();
+    // Langsung gunakan UserData? dari service
+    final UserData? userDataProfile = await _userService.getUserProfile();
     if (!mounted) return;
 
-    if (result['success'] == true && result['data'] != null) {
-      final userData = result['data'];
+    if (userDataProfile != null) { // Jika tidak null, berarti sukses
       try {
         setState(() {
-          _userName = userData['name'];
-          _userEmail = userData['email'];
-          _userAddress = userData['address'];
-          _userPhotoUrl = userData['photo_url'];
+          _userName = userDataProfile.name;
+          _userEmail = userDataProfile.email;
+          _userAddress = userDataProfile.address;
+          _userPhotoUrl = userDataProfile.userPhotoUrl; // Menggunakan field dari UserData
           _nameEditController.text = _userName ?? '';
           _isLoading = false;
         });
@@ -72,15 +72,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _isLoading = false;
         });
       }
-    } else {
+    } else { // Jika null, berarti gagal
       setState(() {
-        _errorMessage = result['message'] ?? 'Gagal memuat profil.';
+        _errorMessage = 'Gagal memuat profil.';
         _isLoading = false;
       });
-      // SnackBar bisa tetap ada atau dihilangkan jika sudah ada tampilan error di body
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(content: Text(_errorMessage!), backgroundColor: Colors.red),
-      // );
     }
   }
 
@@ -95,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           _imageFile = File(pickedFile.path);
         });
-        _uploadProfilePicture();
+        _uploadProfilePicture(); // Panggil fungsi yang benar
       }
     } catch (e) {
       if (mounted) {
@@ -111,20 +107,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) return;
     setState(() { _isUploading = true; });
 
+    // Panggil metode yang benar di UserService, yang sekarang updateUserProfilePicture
     final result = await _userService.updateUserProfilePicture(_imageFile!);
     if (!mounted) return;
 
     setState(() { _isUploading = false; });
     if (result['success'] == true && result['data'] != null) {
       setState(() {
+        // Backend mengembalikan 'filePath', yang merupakan URL relatif
         _userPhotoUrl = result['data']['filePath'];
-        _imageFile = null;
+        _imageFile = null; // Bersihkan imageFile setelah berhasil
       });
-      // Perbarui juga photoUrl di SharedPreferences jika AppDrawer menggunakannya
-      // SharedPreferences prefs = await SharedPreferences.getInstance();
-      // if (_userPhotoUrl != null) {
-      //   await prefs.setString('userPhotoUrl', _userPhotoUrl!);
-      // }
+      // Perbarui juga photoUrl di SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if (_userPhotoUrl != null) {
+        await prefs.setString('user_photo_url', _userPhotoUrl!);
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Foto profil berhasil diperbarui!'), backgroundColor: Colors.green),
@@ -142,22 +140,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _updateUserName() async {
     if (_formKey.currentState!.validate()) {
       if (!mounted) return;
-      setState(() { _isUploading = true; _isEditingName = false; }); // Gunakan _isUploading untuk loading
+      setState(() { _isUploading = true; _isEditingName = false; });
 
       final newName = _nameEditController.text.trim();
+      // Panggil metode yang benar di UserService
       final result = await _userService.updateUserName(newName);
       if (!mounted) return;
 
       setState(() { _isUploading = false; });
 
       if (result['success'] == true && result['data'] != null) {
-        final updatedUserName = result['data']['user']['name'];
-        setState(() {
-          _userName = updatedUserName;
-        });
-        // Update nama di SharedPreferences agar AppDrawer juga update
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('userName', updatedUserName);
+        final updatedUserName = result['data']['user']?['name']; // Sesuaikan dengan struktur respons backend
+        if (updatedUserName != null) {
+          setState(() {
+            _userName = updatedUserName;
+          });
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_name', updatedUserName); // Update juga di SharedPreferences
+        }
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
            const SnackBar(content: Text('Nama berhasil diperbarui!'), backgroundColor: Colors.green),

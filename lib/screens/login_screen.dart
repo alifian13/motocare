@@ -1,10 +1,12 @@
 // lib/screens/login_screen.dart
-
 import 'package:flutter/material.dart';
-import '../services/user_service.dart'; // Pastikan path ini benar
+import '../services/user_service.dart';
+import 'register_screen.dart'; // <-- TAMBAHKAN IMPOR INI
+import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+  static const routeName = '/login';
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -33,19 +35,19 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       final result = await _userService.loginUser(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
       );
 
-      if (!mounted) return; // Cek jika widget masih ada di tree
+      if (!mounted) return;
 
       setState(() {
         _isLoading = false;
       });
 
       if (result['success'] == true) {
-        // Navigasi ke HomeScreen dan hapus semua route sebelumnya
-        Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+        // Arahkan ke HomeScreen menggunakan routeName jika ada
+        Navigator.pushNamedAndRemoveUntil(context, HomeScreen.routeName, (route) => false); // Pastikan HomeScreen punya routeName
       } else {
         setState(() {
           _errorMessage = result['message'] ?? 'Login gagal. Silakan coba lagi.';
@@ -66,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: const Text('Login MotoCare'),
         centerTitle: true,
-        automaticallyImplyLeading: false, // Tidak ada tombol kembali
+        automaticallyImplyLeading: false, // Tidak ada tombol kembali, sudah benar
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -77,10 +79,8 @@ class _LoginScreenState extends State<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                // SizedBox(height: 40), // Beri jarak dari atas jika perlu
-                // Contoh logo sederhana
                 Icon(
-                  Icons.two_wheeler, // Atau icon aplikasi Anda
+                  Icons.two_wheeler,
                   size: 80,
                   color: Theme.of(context).primaryColor,
                 ),
@@ -135,16 +135,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0),
                     ),
-                    // Tambahkan fitur lihat password jika diinginkan
                   ),
                   obscureText: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Password tidak boleh kosong';
                     }
-                    if (value.length < 6) { // Contoh validasi panjang password
-                      return 'Password minimal 6 karakter';
-                    }
+                    // Validasi panjang password bisa disesuaikan dengan backend jika perlu
+                    // if (value.length < 6) {
+                    //   return 'Password minimal 6 karakter';
+                    // }
                     return null;
                   },
                 ),
@@ -153,12 +153,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ? const Center(child: CircularProgressIndicator())
                     : ElevatedButton(
                         style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor, // Tambahkan warna primary
+                          foregroundColor: Colors.white, // Warna teks putih
                           padding: const EdgeInsets.symmetric(vertical: 16.0),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12.0),
                           ),
+                          textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold), // Style teks
                         ),
-                        onPressed: _attemptLogin,
+                        onPressed: _attemptLogin, // Memanggil fungsi _attemptLogin
                         child: const Text('LOGIN'),
                       ),
                 const SizedBox(height: 20),
@@ -167,15 +170,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Text(
                       'Belum punya akun?',
-                      style: TextStyle(color: Colors.grey[700]),
+                      style: TextStyle(color: Colors.grey[700], fontSize: 16),
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, '/register');
+                        // Pastikan '/register' adalah routeName yang benar untuk RegisterScreen
+                        Navigator.pushNamed(context, RegisterScreen.routeName);
                       },
                       child: Text(
                         'Daftar Sekarang',
                         style: TextStyle(
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).primaryColor,
                         ),
@@ -190,4 +195,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-}
+} // Kurung kurawal penutup ekstra telah dihapus dari sini

@@ -1,260 +1,184 @@
-// services/user_service.dart
+// lib/services/user_service.dart
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io'; // Untuk File
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart'; 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:motocare/models/user_data_model.dart';
+import 'package:motocare/services/api_service.dart';
+import 'package:motocare/utils/constants.dart'; // <-- TAMBAHKAN IMPOR INI
 
 class UserService {
-  // Replace with your actual API base URL.
-  // For Android emulator, if API is on localhost: http://10.0.2.2:PORT
-  // For iOS simulator, if API is on localhost: http://localhost:PORT
-  // If testing on a physical device, use your computer's network IP address.
-  final String _baseUrl = "http://127.0.0.1:3000/api"; // EXAMPLE FOR ANDROID EMULATOR
+  final ApiService _apiService = ApiService();
 
   Future<Map<String, dynamic>> registerUser({
     required String name,
     required String email,
     required String password,
-    required String address,
-    required String plateNumber, // Changed from optional
-    required String brand,       // Changed from optional
-    required String motorModel,    // Changed from optional
-    int? currentOdometer,
-    DateTime? lastServiceDate,
+    String? address,
+    required String plateNumber,
+    required String brand,
+    required String model,
+    required int currentOdometer,
+    String? lastServiceDate,
+    List<Map<String, dynamic>>? initialServices,
   }) async {
     try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/users/register'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(<String, dynamic>{
-          'name': name,
-          'email': email,
-          'password': password,
-          'address': address,
-          'plate_number': plateNumber,
-          'brand': brand,
-          'model': motorModel,
-          'current_odometer': currentOdometer,
-          'last_service_date': lastServiceDate?.toIso8601String().split('T')[0], // Send only YYYY-MM-DD
-        }),
-      );
-
-      final responseData = jsonDecode(response.body);
-      if (response.statusCode == 201) {
-        return {'success': true, 'data': responseData};
-      } else {
-        return {'success': false, 'message': responseData['message'] ?? 'Registration failed'};
-      }
-    } catch (e) {
-      print("Register User Exception: $e");
-      return {'success': false, 'message': 'Cannot connect to server: $e'};
-    }
-  }
-
-  Future<Map<String, dynamic>> loginUser({
-  required String email,
-  required String password,
-}) async {
-  try {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/users/login'), // Pastikan _baseUrl sudah benar
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
+      final Map<String, dynamic> requestBody = {
+        'name': name,
         'email': email,
         'password': password,
-      }),
-    );
+        if (address != null) 'address': address,
+        'plate_number': plateNumber,
+        'brand': brand,
+        'model': model,
+        'current_odometer': currentOdometer,
+        if (lastServiceDate != null) 'last_service_date': lastServiceDate,
+        if (initialServices != null && initialServices.isNotEmpty) 'initialServices': initialServices,
+      };
 
-    final responseData = jsonDecode(response.body);
-    if (response.statusCode == 200) { // OK
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', responseData['token']);
-      await prefs.setInt('userId', responseData['user']['user_id']); // Simpan user_id
-      await prefs.setString('userName', responseData['user']['name']);
-      await prefs.setString('userEmail', responseData['user']['email']);
-      // Anda bisa menyimpan detail pengguna lain jika perlu
-      return {'success': true, 'data': responseData};
-    } else {
-      return {'success': false, 'message': responseData['message'] ?? 'Login gagal'};
-    }
-  } catch (e) {
-    print("Error Login User: $e");
-    return {'success': false, 'message': 'Tidak dapat terhubung ke server: $e'};
-  }
-}
-
-   Future<Map<String, dynamic>> getMyNotifications() async {
-    print("UserService: getMyNotifications called"); // DEBUG
-    try {
-      String? token = await getToken();
-      if (token == null) {
-        print("UserService: No token found for getMyNotifications"); // DEBUG
-        return {'success': false, 'message': 'User not authenticated.'};
-      }
-
-      print("UserService: Fetching notifications with token..."); // DEBUG
-      final response = await http.get(
-        Uri.parse('$_baseUrl/notifications/my-notifications'),
-        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
-      ).timeout(const Duration(seconds: 15)); // Tambahkan timeout untuk mencegah hang selamanya
-
-      print('Get Notifications Status Code: ${response.statusCode}'); // DEBUG
-      print('Get Notifications Body: ${response.body}'); // DEBUG
-
-      // Periksa jika body kosong sebelum decode, meskipun API yang baik akan tetap mengembalikan JSON ({}, [])
-      if (response.body.isEmpty) {
-        print("UserService: Empty response body from server."); //DEBUG
-        if (response.statusCode == 200) {
-             // Jika server mengembalikan 200 dengan body kosong, anggap sebagai data kosong
-             return {'success': true, 'data': []};
-        }
-        return {'success': false, 'message': 'Respons kosong dari server.'};
-      }
-
+      final response = await _apiService.post('/users/register', requestBody, requiresAuth: false);
       final responseData = jsonDecode(response.body);
-      if (response.statusCode == 200) {
-        print("UserService: getMyNotifications success"); // DEBUG
+
+      if (response.statusCode == 201) {
+        if (responseData.containsKey('token')) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('token', responseData['token']);
+           // Simpan data user dasar jika ada
+          if (responseData.containsKey('user')) {
+            await prefs.setString('user_id', responseData['user']['user_id'].toString());
+            await prefs.setString('user_name', responseData['user']['name']);
+            await prefs.setString('user_email', responseData['user']['email']);
+            // Anda bisa menyimpan photo_url di sini jika dikembalikan saat registrasi
+            if (responseData['user']['photo_url'] != null) {
+                await prefs.setString('user_photo_url', responseData['user']['photo_url']);
+            }
+          }
+        }
         return {'success': true, 'data': responseData};
       } else {
-        print("UserService: getMyNotifications failed with status ${response.statusCode}"); // DEBUG
-        return {'success': false, 'message': responseData['message'] ?? 'Failed to fetch notifications from server'};
+        return {'success': false, 'message': responseData['message'] ?? 'Registrasi gagal'};
       }
-    } catch (e, stackTrace) { // Tangkap stackTrace juga
-      print("GetMyNotifications Exception: $e"); // DEBUG
-      print("Stack Trace: $stackTrace"); // DEBUG
-      return {'success': false, 'message': 'Tidak dapat terhubung ke server atau terjadi kesalahan: $e'};
+    } catch (e) {
+      print('Error di registerUser: $e');
+      return {'success': false, 'message': 'Terjadi kesalahan: ${e.toString()}'};
     }
   }
 
-  Future<String?> getToken() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+  Future<Map<String, dynamic>> loginUser(String email, String password) async {
+    try {
+      final response = await _apiService.post('/users/login', {
+        'email': email,
+        'password': password,
+      }, requiresAuth: false);
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && responseData.containsKey('token')) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', responseData['token']);
+        if (responseData.containsKey('user')) {
+             await prefs.setString('user_id', responseData['user']['user_id'].toString());
+             await prefs.setString('user_name', responseData['user']['name']);
+             await prefs.setString('user_email', responseData['user']['email']);
+             if (responseData['user']['photo_url'] != null) { // Simpan photo_url saat login
+                await prefs.setString('user_photo_url', responseData['user']['photo_url']);
+             }
+        }
+        return {'success': true, 'data': responseData};
+      } else {
+        return {'success': false, 'message': responseData['message'] ?? 'Login gagal'};
+      }
+    } catch (e) {
+      print('Error di loginUser: $e');
+      return {'success': false, 'message': 'Terjadi kesalahan: ${e.toString()}'};
+    }
   }
 
-  Future<int?> getUserId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('userId');
+  // Mengembalikan UserData? agar ProfileScreen bisa menggunakannya langsung
+  Future<UserData?> getUserProfile() async {
+    try {
+      final response = await _apiService.get('/users/profile');
+      if (response.statusCode == 200) {
+        // Backend Anda mengirim langsung objek user, bukan dibungkus 'data'
+        return UserData.fromJson(jsonDecode(response.body));
+      } else {
+        print('Gagal mendapatkan profil: ${response.statusCode} ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error di getUserProfile: $e');
+      return null;
+    }
+  }
+
+  // Metode generik untuk update profil (termasuk alamat dll, jika backend mendukung)
+  Future<Map<String, dynamic>> updateUserProfileData(Map<String, dynamic> profileData) async {
+    try {
+      final response = await _apiService.put('/users/profile/update', profileData);
+      final responseBody = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        // Perbarui data user di SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        if(responseBody['user']?['name'] != null) await prefs.setString('user_name', responseBody['user']['name']);
+        // Tambahkan update untuk field lain jika perlu
+        return {'success': true, 'data': responseBody};
+      } else {
+        return {'success': false, 'message': responseBody['message'] ?? 'Update profil gagal'};
+      }
+    } catch (e) {
+      print('Error di updateUserProfileData: $e');
+      return {'success': false, 'message': 'Terjadi kesalahan: ${e.toString()}'};
+    }
+  }
+
+  // Metode spesifik untuk update nama pengguna
+  Future<Map<String, dynamic>> updateUserName(String newName) async {
+    return updateUserProfileData({'name': newName}); // Memanfaatkan metode generik
+  }
+
+
+  // Mengganti nama metode dari uploadProfilePicture ke updateUserProfilePicture
+  // agar sesuai dengan panggilan di ProfileScreen
+  Future<Map<String, dynamic>> updateUserProfilePicture(File imageFile) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      if (token == null) return {'success': false, 'message': 'Token tidak ditemukan'};
+
+      var request = http.MultipartRequest(
+        'POST', // Backend Anda menggunakan POST untuk upload gambar profil
+        Uri.parse('${ApiConstants.baseUrl}/users/profile/upload-picture'),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(await http.MultipartFile.fromPath('profilePicture', imageFile.path));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+         // Perbarui photo_url di SharedPreferences
+        if (responseData['filePath'] != null) {
+            await prefs.setString('user_photo_url', responseData['filePath']);
+        }
+        return {'success': true, 'data': responseData};
+      } else {
+        return {'success': false, 'message': responseData['message'] ?? 'Upload foto gagal'};
+      }
+    } catch (e) {
+      print('Error di updateUserProfilePicture: $e');
+      return {'success': false, 'message': 'Terjadi kesalahan: ${e.toString()}'};
+    }
   }
 
   Future<void> logoutUser() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
-    await prefs.remove('userId');
-    await prefs.remove('userName');
-    await prefs.remove('userEmail');
-    // Clear other stored user data
+    await prefs.remove('user_id');
+    await prefs.remove('user_name');
+    await prefs.remove('user_email');
+    await prefs.remove('user_photo_url'); // Hapus juga photo_url
+    await prefs.remove('current_vehicle_id'); // Hapus kendaraan aktif
   }
-
-  Future<Map<String, dynamic>> getUserProfile() async {
-  print("UserService: getUserProfile called"); // DEBUG
-  try {
-    String? token = await getToken();
-    if (token == null) {
-      print("UserService: No token for getUserProfile"); // DEBUG
-      return {'success': false, 'message': 'Belum login'};
-    }
-
-    print("UserService: Fetching profile with token..."); // DEBUG
-    final response = await http.get(
-      Uri.parse('$_baseUrl/users/profile'),
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
-    ).timeout(const Duration(seconds: 15));
-
-    print('Get UserProfile Status Code: ${response.statusCode}'); // DEBUG
-    print('Get UserProfile Body: ${response.body}'); // DEBUG
-
-    if (response.body.isEmpty) {
-      print("UserService: Empty response body for profile."); //DEBUG
-      if (response.statusCode == 200) {
-           return {'success': true, 'data': {}}; // atau null, tergantung bagaimana Anda mau handle
-      }
-      return {'success': false, 'message': 'Respons profil kosong dari server.'};
-    }
-
-    final responseData = jsonDecode(response.body);
-    if (response.statusCode == 200) {
-      print("UserService: getUserProfile success"); // DEBUG
-      return {'success': true, 'data': responseData};
-    } else {
-      print("UserService: getUserProfile failed with status ${response.statusCode}"); // DEBUG
-      return {'success': false, 'message': responseData['message'] ?? 'Gagal mengambil profil'};
-    }
-  } catch (e, stackTrace) {
-    print("GetUserProfile Exception: $e"); // DEBUG
-    print("Stack Trace: $stackTrace"); // DEBUG
-    return {'success': false, 'message': 'Error: $e'};
-  }
-}
-
-  Future<Map<String, dynamic>> updateUserName(String newName) async {
-    try {
-      String? token = await getToken();
-      if (token == null) return {'success': false, 'message': 'Belum login'};
-
-      final response = await http.put(
-        Uri.parse('$_baseUrl/users/profile'),
-        headers: {
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({'name': newName}),
-      );
-      final responseData = jsonDecode(response.body);
-      if (response.statusCode == 200) {
-        // Update nama di SharedPreferences juga
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('userName', responseData['user']['name']);
-        return {'success': true, 'data': responseData};
-      } else {
-        return {'success': false, 'message': responseData['message'] ?? 'Gagal update nama'};
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Error: $e'};
-    }
-  }
-
-  Future<Map<String, dynamic>> updateUserProfilePicture(File imageFile) async {
-    try {
-      String? token = await getToken();
-      if (token == null) return {'success': false, 'message': 'Belum login'};
-
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('$_baseUrl/users/profile/picture'),
-      );
-      request.headers['Authorization'] = 'Bearer $token';
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'profilePicture', // Nama field yang sama dengan di backend (upload.single('profilePicture'))
-          imageFile.path,
-          contentType: MediaType('image', imageFile.path.split('.').last), // Dapatkan ekstensi
-        ),
-      );
-
-      var streamedResponse = await request.send();
-      var response = await http.Response.fromStream(streamedResponse);
-      final responseData = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-         // Simpan URL foto baru ke SharedPreferences jika perlu untuk update cepat di UI lain
-        // SharedPreferences prefs = await SharedPreferences.getInstance();
-        // await prefs.setString('userPhotoUrl', responseData['filePath']);
-        return {'success': true, 'data': responseData};
-      } else {
-        return {'success': false, 'message': responseData['message'] ?? 'Gagal unggah foto'};
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Error: $e'};
-    }
-  }
-
-  // This replaces your old getUserData from SharedPreferences for data that now comes from the DB
-  // You'll likely call specific endpoints for specific data (e.g., vehicles, profile)
-  // For a simple profile data, you might have a /api/users/profile endpoint
-  // Or just use the data returned from login and stored in SharedPreferences for display.
 }
