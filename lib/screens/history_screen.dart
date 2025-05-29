@@ -1,11 +1,14 @@
 // lib/screens/history_screen.dart
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // <-- TAMBAHKAN IMPOR INI
 import '../models/service_history_item.dart';
 import '../services/vehicle_service.dart';
 
 class HistoryScreen extends StatefulWidget {
-  final int vehicleId; // Menerima int
-  const HistoryScreen({super.key, required this.vehicleId});
+  final int vehicleId;
+  final String? plateNumber;
+
+  const HistoryScreen({super.key, required this.vehicleId, this.plateNumber});
   static const routeName = '/history';
 
   @override
@@ -25,21 +28,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> _loadHistory() async {
     if (!mounted) return;
     setState(() {
-      // VehicleService.getServiceHistory mengharapkan String, jadi konversi widget.vehicleId
       _historyFuture = _vehicleService.getServiceHistory(widget.vehicleId.toString());
     });
   }
 
   IconData _getIconForServiceType(String serviceType) {
     String typeLower = serviceType.toLowerCase();
-    if (typeLower.contains('oli')) {
+    if (typeLower.contains('oli mesin')) {
       return Icons.opacity_outlined;
+    } else if (typeLower.contains('oli gardan')) {
+      return Icons.water_drop_outlined;
     } else if (typeLower.contains('cvt') || typeLower.contains('mesin')) {
       return Icons.settings_applications_outlined;
     } else if (typeLower.contains('ban')) {
       return Icons.tire_repair_outlined;
     } else if (typeLower.contains('rem')) {
-      return Icons.car_repair_outlined;
+      return Icons.car_repair; // Mengganti dengan ikon yang ada
+    } else if (typeLower.contains('kelistrikan') || typeLower.contains('aki')) {
+      return Icons.electrical_services_outlined;
     }
     return Icons.build_circle_outlined;
   }
@@ -48,7 +54,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Riwayat Perawatan'),
+        title: Text('Riwayat ${widget.plateNumber ?? ''}'),
       ),
       body: FutureBuilder<List<ServiceHistoryItem>>(
         future: _historyFuture,
@@ -76,16 +82,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.history_toggle_off_outlined, size: 60, color: Colors.grey),
+                    Icon(Icons.history_toggle_off_outlined, size: 60, color: Colors.grey.shade400),
                     const SizedBox(height: 16),
-                    const Text("Belum ada riwayat perawatan untuk kendaraan ini.", textAlign: TextAlign.center, style: TextStyle(fontSize: 16)),
-                    const SizedBox(height: 10),
+                    const Text("Belum ada riwayat perawatan.", textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.grey)),
+                    const SizedBox(height: 20),
                       ElevatedButton.icon(
                       icon: const Icon(Icons.add_circle_outline),
-                      label: const Text('Tambah Riwayat Servis Manual'),
+                      label: const Text('Tambah Riwayat Manual'),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Fitur tambah riwayat manual belum terhubung.')),
+                          const SnackBar(content: Text('Fitur tambah riwayat manual belum diimplementasikan.')),
                         );
                       },
                     ),
@@ -96,37 +102,35 @@ class _HistoryScreenState extends State<HistoryScreen> {
           return RefreshIndicator(
               onRefresh: _loadHistory,
               child: ListView.builder(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(12.0),
                 itemCount: historyItems.length,
                 itemBuilder: (context, index) {
                   final item = historyItems[index];
                   return Card(
-                    elevation: 2.0,
-                    margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    margin: const EdgeInsets.symmetric(vertical: 6.0),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Theme.of(context).primaryColorLight.withOpacity(0.7),
-                        child: Icon(_getIconForServiceType(item.serviceType), color: Theme.of(context).primaryColorDark),
+                        backgroundColor: Theme.of(context).primaryColorLight.withOpacity(0.5),
+                        child: Icon(_getIconForServiceType(item.serviceType), color: Theme.of(context).primaryColorDark, size: 24),
                       ),
-                      title: Text(item.serviceType, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      title: Text(item.serviceType, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Tanggal: ${item.formattedServiceDate ?? 'N/A'}"),
-                          Text("Odometer: ${item.odometerAtService} km"),
+                          const SizedBox(height: 2),
+                          Text("Tanggal: ${item.formattedServiceDate}", style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                          Text("Odometer: ${NumberFormat.decimalPattern('id_ID').format(item.odometerAtService)} km", style: TextStyle(fontSize: 12, color: Colors.grey[700])),
                           if (item.workshopName != null && item.workshopName!.isNotEmpty)
-                            Text("Bengkel: ${item.workshopName}"),
+                            Text("Bengkel: ${item.workshopName}", style: TextStyle(fontSize: 12, color: Colors.grey[700])),
                           if (item.description != null && item.description!.isNotEmpty)
                             Padding(
-                              padding: const EdgeInsets.only(top: 4.0),
-                              child: Text("Deskripsi: ${item.description}", style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+                              padding: const EdgeInsets.only(top: 3.0),
+                              child: Text("Catatan: ${item.description}", style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey[600])),
                             ),
                           if (item.cost != null && item.cost! > 0)
-                            Text("Biaya: Rp ${item.cost!.toStringAsFixed(0)}", style: TextStyle(fontSize: 12, color: Colors.green[700])),
+                            Text("Biaya: Rp ${NumberFormat.decimalPattern('id_ID').format(item.cost)}", style: TextStyle(fontSize: 12, color: Colors.green[700], fontWeight: FontWeight.w500)),
                         ],
                       ),
-                      onTap: () { /* detail halaman service */ },
                     ),
                   );
                 },
@@ -137,6 +141,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
        floatingActionButton: FloatingActionButton(
         onPressed: _loadHistory,
         tooltip: 'Refresh Riwayat',
+        backgroundColor: Theme.of(context).primaryColor,
         child: const Icon(Icons.refresh),
       ),
     );

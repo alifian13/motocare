@@ -40,7 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // DateTime? _selectedServiceDate; // Untuk _lastServiceDateController jika pakai DatePicker internal
 
   // Untuk menampung data servis awal - sudah ada di file Anda
-  List<Map<String, dynamic>> _initialServices = [];
+  final List<Map<String, dynamic>> _initialServices = [];
   bool _isLoading = false;
 
   @override

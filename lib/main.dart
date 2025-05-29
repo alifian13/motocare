@@ -1,9 +1,12 @@
 // lib/main.dart
+import 'dart:async'; // Untuk StreamController
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-// Import semua screen Anda
+import 'services/notification_service.dart';
+import 'services/user_service.dart';
+
 import 'screens/home_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/login_screen.dart';
@@ -13,11 +16,24 @@ import 'screens/notification_list_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/contact_us_screen.dart';
 
+// Global StreamController untuk event klik notifikasi
+// Anda bisa menempatkannya di service atau state management yang lebih canggih
+// jika aplikasi Anda besar. Untuk sekarang, di sini agar mudah diakses.
+final StreamController<String?> notificationPayloadStream = StreamController<String?>.broadcast();
+
+final NotificationService notificationService = NotificationService();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
+
+  print("MAIN: Menginisialisasi NotificationService...");
+  // Modifikasi initializeNotifications untuk menerima stream controller
+  await notificationService.initializeNotifications(notificationPayloadStream);
+  print("MAIN: NotificationService telah diinisialisasi.");
+
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token');
+  String? token = prefs.getString(UserService.prefToken);
 
   runApp(MotorApp(isLoggedIn: token != null && token.isNotEmpty));
 }
@@ -48,10 +64,15 @@ class MotorApp extends StatelessWidget {
           fillColor: Colors.white,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide(color: Colors.grey.shade300, width: 1.0),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide(color: Colors.blue[700]!),
+            borderSide: BorderSide(color: Colors.blue[700]!, width: 1.5),
           ),
           contentPadding: const EdgeInsets.symmetric(vertical: 15.0, horizontal: 12.0),
           hintStyle: TextStyle(color: Colors.grey[500])
@@ -67,6 +88,13 @@ class MotorApp extends StatelessWidget {
             ),
           ),
         ),
+        cardTheme: CardThemeData(
+          elevation: 1.5,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          margin: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 0),
+        )
       ),
       initialRoute: isLoggedIn ? HomeScreen.routeName : LoginScreen.routeName,
       routes: {
@@ -75,13 +103,12 @@ class MotorApp extends StatelessWidget {
         HomeScreen.routeName: (context) => const HomeScreen(),
         HistoryScreen.routeName: (context) {
           final arguments = ModalRoute.of(context)!.settings.arguments;
-          if (arguments is String) {
-            final vehicleIdInt = int.tryParse(arguments);
-            if (vehicleIdInt != null) {
-              return HistoryScreen(vehicleId: vehicleIdInt);
+          if (arguments is Map<String, dynamic>) {
+            final vehicleId = arguments['vehicleId'] as int?;
+            final plateNumber = arguments['plateNumber'] as String?;
+            if (vehicleId != null) {
+              return HistoryScreen(vehicleId: vehicleId, plateNumber: plateNumber);
             }
-          } else if (arguments is int) {
-             return HistoryScreen(vehicleId: arguments);
           }
           return Scaffold(
               appBar: AppBar(title: const Text("Error Navigasi")),
@@ -89,12 +116,12 @@ class MotorApp extends StatelessWidget {
         },
         ScheduleScreen.routeName: (context) {
           final arguments = ModalRoute.of(context)!.settings.arguments;
-          // ScheduleScreen mengharapkan String untuk vehicleId
-          if (arguments is String) {
-            return ScheduleScreen(vehicleId: arguments);
-          } else if (arguments is int) {
-            // Konversi int ke String jika dikirim sebagai int
-            return ScheduleScreen(vehicleId: arguments.toString());
+          if (arguments is Map<String, dynamic>) {
+            final vehicleId = arguments['vehicleId'] as String?;
+            final plateNumber = arguments['plateNumber'] as String?;
+            if (vehicleId != null) {
+              return ScheduleScreen(vehicleId: vehicleId, plateNumber: plateNumber);
+            }
           }
           return Scaffold(
               appBar: AppBar(title: const Text("Error Navigasi")),

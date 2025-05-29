@@ -1,7 +1,7 @@
 // lib/services/vehicle_service.dart
 import 'dart:convert';
 import 'package:motocare/models/vehicle_model.dart';
-// import 'package:motocare/models/trip_model.dart'; // Uncomment jika Trip model digunakan di sini
+import 'package:motocare/models/trip_model.dart'; // Pastikan impor ini ada
 import 'package:motocare/models/service_history_item.dart';
 import 'package:motocare/models/schedule_item.dart';
 import 'package:motocare/services/api_service.dart';
@@ -30,7 +30,7 @@ class VehicleService {
   // --- Metode untuk menambah kendaraan baru ---
   Future<Map<String, dynamic>> addVehicle(Map<String, dynamic> vehicleData) async {
     try {
-      final response = await _apiService.post('/vehicles', vehicleData); // Endpoint POST ke /api/vehicles/
+      final response = await _apiService.post('/vehicles', vehicleData);
       final responseBody = jsonDecode(response.body);
       if (response.statusCode == 201) {
         return {'success': true, 'data': responseBody};
@@ -42,7 +42,6 @@ class VehicleService {
       return {'success': false, 'message': 'Terjadi kesalahan: ${e.toString()}'};
     }
   }
-
 
   // --- Metode untuk menambah perjalanan ---
   Future<Map<String, dynamic>> addTrip(String vehicleId, Map<String, dynamic> tripData) async {
@@ -77,11 +76,8 @@ class VehicleService {
   }
 
   // --- Metode untuk mendapatkan jadwal perawatan ---
-  // (Sesuai dengan yang diharapkan oleh ScheduleScreen yang pakai FutureBuilder)
   Future<List<ScheduleItem>> getSchedules(String vehicleId) async {
     try {
-      // Endpoint ini perlu Anda buat di backend (vehiclesRoutes.js)
-      // GET /api/vehicles/:vehicleId/schedules
       final response = await _apiService.get('/vehicles/${vehicleId.toString()}/schedules');
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);
@@ -99,15 +95,9 @@ class VehicleService {
     }
   }
 
-
-  // --- BARU: Metode untuk mendapatkan riwayat servis ---
+  // --- Metode untuk mendapatkan riwayat servis ---
   Future<List<ServiceHistoryItem>> getServiceHistory(String vehicleId) async {
-  // Mengubah dari int vehicleId ke String jika API Service Anda mengharapkan String
-  // atau pastikan endpoint di backend bisa menerima int jika dikirim langsung.
-  // Untuk konsistensi dengan contoh lain, kita gunakan vehicleId.toString()
     try {
-      // Endpoint ini perlu Anda buat di backend (vehiclesRoutes.js)
-      // GET /api/vehicles/:vehicleId/history
       final response = await _apiService.get('/vehicles/${vehicleId.toString()}/history');
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);
@@ -125,7 +115,7 @@ class VehicleService {
     }
   }
 
-  // --- BARU: Metode untuk Update Odometer Manual ---
+  // --- Metode untuk Update Odometer Manual ---
   Future<Map<String, dynamic>> updateOdometerManually(
       String vehicleId, int newOdometer) async {
     try {
@@ -147,6 +137,34 @@ class VehicleService {
     } catch (e) {
       print('[VehicleService] Error di updateOdometerManually: $e');
       return {'success': false, 'message': 'Terjadi kesalahan: ${e.toString()}'};
+    }
+  }
+
+  // --- BARU: Metode untuk mendapatkan perjalanan terbaru (DIPINDAHKAN KE DALAM CLASS) ---
+  Future<List<Trip>> getRecentTrips(String vehicleId, {int limit = 3}) async {
+    try {
+      // Endpoint ini mengharapkan backend mendukung query parameter untuk limit dan sorting.
+      // Contoh: /api/vehicles/{vehicleId}/trips?limit=3&sortBy=end_time&sortOrder=DESC
+      // Backend Anda sudah diatur untuk ini.
+      final response = await _apiService.get('/vehicles/$vehicleId/trips?limit=$limit&sortBy=end_time&sortOrder=DESC');
+      if (response.statusCode == 200) {
+        // Backend mengembalikan objek dengan properti 'trips' yang berisi array
+        final responseBody = jsonDecode(response.body);
+        if (responseBody['trips'] != null && responseBody['trips'] is List) {
+            List<dynamic> body = responseBody['trips'];
+            List<Trip> trips = body.map((dynamic item) => Trip.fromJson(item)).toList();
+            return trips;
+        } else {
+            print('[VehicleService] Format respons perjalanan terbaru tidak sesuai: ${response.body}');
+            return [];
+        }
+      } else {
+        print('[VehicleService] Gagal mendapatkan perjalanan terbaru: ${response.statusCode} ${response.body}');
+        return []; // Kembalikan list kosong jika gagal
+      }
+    } catch (e) {
+      print('[VehicleService] Error di getRecentTrips: $e');
+      return []; // Kembalikan list kosong jika terjadi error
     }
   }
 }
