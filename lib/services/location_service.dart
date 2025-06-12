@@ -67,7 +67,7 @@ class LocationService {
 
   Timer? _motorStoppedTimer;
   bool _isCurrentlyStoppedForTimer = false;
-  static const Duration _motorStoppedNotificationDuration = Duration(seconds: 15); // DURASI BARU
+  static const Duration _motorStoppedNotificationDuration = Duration(seconds: 5); // DURASI BARU
 
   bool isTrackingActive() {
     return _locationSubscription != null && !_locationSubscription!.isPaused;
