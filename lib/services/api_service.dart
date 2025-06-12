@@ -7,12 +7,12 @@ import '../utils/constants.dart'; // Pastikan path ini benar
 class ApiService {
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
+    // Berdasarkan kode login_screen Anda, key yang benar adalah 'token'
     return prefs.getString('token');
   }
 
   Future<Map<String, String>> _getHeaders({bool requiresAuth = true}) async {
     final headers = <String, String>{
-      // PERBAIKAN: Ubah 'UTF-o-8' menjadi 'UTF-8'
       'Content-Type': 'application/json; charset=UTF-8',
     };
     if (requiresAuth) {
@@ -32,7 +32,8 @@ class ApiService {
     return http.get(url, headers: headers);
   }
 
-  Future<http.Response> post(String endpoint, Map<String, dynamic> body, {bool requiresAuth = true}) async {
+  Future<http.Response> post(String endpoint, Map<String, dynamic> body,
+      {bool requiresAuth = true}) async {
     final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     final headers = await _getHeaders(requiresAuth: requiresAuth);
     final encodedBody = jsonEncode(body);
@@ -42,7 +43,8 @@ class ApiService {
     return http.post(url, headers: headers, body: encodedBody);
   }
 
-  Future<http.Response> put(String endpoint, Map<String, dynamic> body, {bool requiresAuth = true}) async {
+  Future<http.Response> put(String endpoint, Map<String, dynamic> body,
+      {bool requiresAuth = true}) async {
     final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     final headers = await _getHeaders(requiresAuth: requiresAuth);
     final encodedBody = jsonEncode(body);
@@ -52,8 +54,8 @@ class ApiService {
     return http.put(url, headers: headers, body: encodedBody);
   }
 
-  // Tambahkan method delete jika perlu
-  Future<http.Response> delete(String endpoint, {Map<String, dynamic>? body, bool requiresAuth = true}) async {
+  Future<http.Response> delete(String endpoint,
+      {Map<String, dynamic>? body, bool requiresAuth = true}) async {
     final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     final headers = await _getHeaders(requiresAuth: requiresAuth);
     final encodedBody = body != null ? jsonEncode(body) : null;
@@ -61,5 +63,37 @@ class ApiService {
     print('[ApiService] Headers: $headers'); // Logging
     if (encodedBody != null) print('[ApiService] Body: $encodedBody'); // Logging
     return http.delete(url, headers: headers, body: encodedBody);
+  }
+
+  // --- METHOD BARU YANG DITAMBAHKAN UNTUK FITUR PELACAKAN ---
+  Future<void> recordTrip({
+    required int vehicleId,
+    required double distanceKm,
+    required double startLatitude,
+    required double startLongitude,
+    required double endLatitude,
+    required double endLongitude,
+  }) async {
+    // Endpoint ini disesuaikan dengan file vehiclesRoutes.js Anda
+    final String endpoint = '/vehicles/$vehicleId/trips';
+    
+    // Body ini disesuaikan dengan yang diharapkan backend Anda
+    final Map<String, dynamic> body = {
+      'distance_km': distanceKm,
+      'start_latitude': startLatitude,
+      'start_longitude': startLongitude,
+      'end_latitude': endLatitude,
+      'end_longitude': endLongitude,
+    };
+
+    // Menggunakan method post yang sudah ada
+    final response = await post(endpoint, body, requiresAuth: true);
+
+    // Backend Anda memberikan status 201 (Created) saat sukses
+    if (response.statusCode != 201) {
+      throw Exception('Gagal mencatat perjalanan: ${response.body}');
+    } else {
+      print('Trip berhasil dicatat untuk vehicle $vehicleId');
+    }
   }
 }

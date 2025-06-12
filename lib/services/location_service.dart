@@ -1,4 +1,3 @@
-// lib/services/location_service.dart
 import 'dart:async';
 import 'package:flutter/material.dart'; // Hanya untuk BuildContext jika diperlukan
 import 'package:location/location.dart';

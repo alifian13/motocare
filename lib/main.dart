@@ -1,5 +1,5 @@
 // lib/main.dart
-import 'dart:async'; // Untuk StreamController
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -15,25 +15,25 @@ import 'screens/schedule_screen.dart';
 import 'screens/notification_list_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/contact_us_screen.dart';
+import 'screens/settings_screen.dart'; // <-- 2. IMPORT HALAMAN PENGATURAN
 
 // Global StreamController untuk event klik notifikasi
-// Anda bisa menempatkannya di service atau state management yang lebih canggih
-// jika aplikasi Anda besar. Untuk sekarang, di sini agar mudah diakses.
 final StreamController<String?> notificationPayloadStream = StreamController<String?>.broadcast();
 
 final NotificationService notificationService = NotificationService();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
   await initializeDateFormatting('id_ID', null);
 
   print("MAIN: Menginisialisasi NotificationService...");
-  // Modifikasi initializeNotifications untuk menerima stream controller
   await notificationService.initializeNotifications(notificationPayloadStream);
   print("MAIN: NotificationService telah diinisialisasi.");
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString(UserService.prefToken);
+  // Berdasarkan kode Anda, key yang benar adalah 'token'
+  String? token = prefs.getString('token'); 
 
   runApp(MotorApp(isLoggedIn: token != null && token.isNotEmpty));
 }
@@ -130,6 +130,9 @@ class MotorApp extends StatelessWidget {
         NotificationListScreen.routeName: (context) => const NotificationListScreen(),
         ProfileScreen.routeName: (context) => const ProfileScreen(),
         ContactUsScreen.routeName: (context) => const ContactUsScreen(),
+        // --- 4. DAFTARKAN ROUTE BARU UNTUK PENGATURAN ---
+        SettingsScreen.routeName: (context) => SettingsScreen(),
+        // ---------------------------------------------
       },
     );
   }

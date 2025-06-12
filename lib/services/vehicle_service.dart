@@ -140,22 +140,21 @@ class VehicleService {
     }
   }
 
-  // --- BARU: Metode untuk mendapatkan perjalanan terbaru (DIPINDAHKAN KE DALAM CLASS) ---
+  // --- Metode untuk mendapatkan perjalanan terbaru ---
   Future<List<Trip>> getRecentTrips(String vehicleId, {int limit = 3}) async {
     try {
-      // Endpoint ini mengharapkan backend mendukung query parameter untuk limit dan sorting.
-      // Contoh: /api/vehicles/{vehicleId}/trips?limit=3&sortBy=end_time&sortOrder=DESC
-      // Backend Anda sudah diatur untuk ini.
-      final response = await _apiService.get('/vehicles/$vehicleId/trips?limit=$limit&sortBy=end_time&sortOrder=DESC');
+      // PERBAIKAN: Menggunakan endpoint 'all-trips' yang benar sesuai backend Anda
+      final response = await _apiService.get('/vehicles/$vehicleId/all-trips?limit=$limit&sortBy=end_time&sortOrder=DESC');
+      
       if (response.statusCode == 200) {
-        // Backend mengembalikan objek dengan properti 'trips' yang berisi array
+        // Backend Anda mengembalikan array langsung di properti 'trips'
         final responseBody = jsonDecode(response.body);
         if (responseBody['trips'] != null && responseBody['trips'] is List) {
             List<dynamic> body = responseBody['trips'];
             List<Trip> trips = body.map((dynamic item) => Trip.fromJson(item)).toList();
             return trips;
         } else {
-            print('[VehicleService] Format respons perjalanan terbaru tidak sesuai: ${response.body}');
+             print('[VehicleService] Format respons perjalanan terbaru tidak sesuai: ${response.body}');
             return [];
         }
       } else {

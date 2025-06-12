@@ -1,5 +1,6 @@
 // lib/widgets/app_drawer.dart
 import 'package:flutter/material.dart';
+import 'package:motocare/screens/settings_screen.dart'; // <-- IMPORT HALAMAN PENGATURAN
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/contact_us_screen.dart';
 import '../screens/profile_screen.dart';
@@ -51,14 +52,6 @@ class _AppDrawerState extends State<AppDrawer> {
     final vehicleIdString = prefs.getString(UserService.prefCurrentVehicleId);
 
     if (vehicleIdString != null) {
-      // Untuk mendapatkan plateNumber, kita mungkin perlu mengambil detail kendaraan
-      // atau menyimpannya di SharedPreferences saat login/pemilihan kendaraan.
-      // Untuk saat ini, kita akan coba kirim vehicleId saja,
-      // dan layar tujuan harus bisa menangani jika plateNumber null.
-      // Atau, kita bisa ambil dari _primaryVehicle di HomeScreen jika ada cara mengaksesnya (misal via Provider)
-      // Namun, untuk menjaga AppDrawer tetap independen, kita coba cara ini dulu.
-      // Jika plateNumber benar-benar dibutuhkan, pertimbangkan state management global.
-
       Map<String, dynamic> arguments = {};
       if (routeName == HistoryScreen.routeName) {
         arguments['vehicleId'] =
@@ -66,8 +59,6 @@ class _AppDrawerState extends State<AppDrawer> {
       } else if (routeName == ScheduleScreen.routeName) {
         arguments['vehicleId'] = vehicleIdString; // ScheduleScreen butuh String
       }
-      // 'plateNumber' bisa ditambahkan di sini jika Anda memiliki cara untuk mendapatkannya
-      // arguments['plateNumber'] = "PLAT_NOMOR_DARI_MANA_SAJA";
 
       if (arguments['vehicleId'] != null) {
         Navigator.pushNamed(context, routeName, arguments: arguments);
@@ -79,8 +70,6 @@ class _AppDrawerState extends State<AppDrawer> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
               'Pilih kendaraan terlebih dahulu di Beranda untuk mengakses menu ini.')));
-      // Opsional: Arahkan ke HomeScreen jika belum ada kendaraan terpilih
-      // Navigator.pushNamedAndRemoveUntil(context, HomeScreen.routeName, (route) => false);
     }
   }
 
@@ -155,7 +144,6 @@ class _AppDrawerState extends State<AppDrawer> {
             title: const Text('Beranda', style: TextStyle(fontSize: 14.5)),
             onTap: () {
               Navigator.pop(context);
-              // Cek apakah sudah di HomeScreen untuk menghindari push berulang
               if (ModalRoute.of(context)?.settings.name !=
                   HomeScreen.routeName) {
                 Navigator.pushNamedAndRemoveUntil(
@@ -193,6 +181,18 @@ class _AppDrawerState extends State<AppDrawer> {
               Navigator.pushNamed(context, NotificationListScreen.routeName);
             },
           ),
+          
+          // --- MENU PENGATURAN YANG DITAMBAHKAN ---
+          ListTile(
+            leading: const Icon(Icons.settings_outlined, size: 22),
+            title: const Text('Pengaturan', style: TextStyle(fontSize: 14.5)),
+            onTap: () {
+              Navigator.pop(context); // Tutup drawer
+              Navigator.of(context).pushNamed(SettingsScreen.routeName);
+            },
+          ),
+          // ------------------------------------------
+
           const Divider(height: 1, thickness: 0.5),
           ListTile(
             leading: const Icon(Icons.contact_support_outlined, size: 22),
