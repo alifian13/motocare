@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; 
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -16,7 +16,8 @@ import 'screens/contact_us_screen.dart';
 import 'screens/settings_screen.dart';
 
 // Global StreamController untuk event klik notifikasi.
-final StreamController<String?> notificationPayloadStream = StreamController<String?>.broadcast();
+final StreamController<String?> notificationPayloadStream =
+    StreamController<String?>.broadcast();
 
 // Inisialisasi service notifikasi sebagai instance global.
 final NotificationService notificationService = NotificationService();
@@ -24,7 +25,7 @@ final NotificationService notificationService = NotificationService();
 void main() async {
   // Pastikan semua binding Flutter siap sebelum menjalankan kode.
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Inisialisasi format tanggal dan waktu untuk locale 'id_ID' (Indonesia).
   await initializeDateFormatting('id_ID', null);
 
@@ -33,7 +34,7 @@ void main() async {
 
   // Periksa status login pengguna dari penyimpanan lokal.
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token'); 
+  String? token = prefs.getString('token');
 
   // Jalankan aplikasi, dengan menentukan status login awal.
   runApp(MotorApp(isLoggedIn: token != null && token.isNotEmpty));
@@ -60,7 +61,7 @@ class MotorApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: primaryColor,
         scaffoldBackgroundColor: backgroundColor,
-        
+
         appBarTheme: AppBarTheme(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
@@ -76,7 +77,8 @@ class MotorApp extends StatelessWidget {
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
           fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.0),
             borderSide: BorderSide.none,
@@ -97,11 +99,10 @@ class MotorApp extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: accentColor,
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
-            textStyle: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.bold
-            ),
+            padding:
+                const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
+            textStyle:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.0),
             ),
@@ -121,12 +122,19 @@ class MotorApp extends StatelessWidget {
         ),
 
         textTheme: TextTheme(
-          displayLarge: GoogleFonts.poppins(fontSize: 28.0, fontWeight: FontWeight.bold, color: textColor),
-          titleLarge: GoogleFonts.poppins(fontSize: 22.0, fontWeight: FontWeight.w600, color: textColor),
-          titleMedium: GoogleFonts.poppins(fontSize: 18.0, fontWeight: FontWeight.bold, color: textColor),
+          displayLarge: GoogleFonts.poppins(
+              fontSize: 28.0, fontWeight: FontWeight.bold, color: textColor),
+          titleLarge: GoogleFonts.poppins(
+              fontSize: 22.0, fontWeight: FontWeight.w600, color: textColor),
+          titleMedium: GoogleFonts.poppins(
+              fontSize: 18.0, fontWeight: FontWeight.bold, color: textColor),
           bodyLarge: GoogleFonts.poppins(fontSize: 16.0, color: textColor),
-          bodyMedium: GoogleFonts.poppins(fontSize: 14.0, color: secondaryTextColor),
-          labelSmall: GoogleFonts.poppins(fontSize: 12.0, color: Colors.blueGrey, fontWeight: FontWeight.w500),
+          bodyMedium:
+              GoogleFonts.poppins(fontSize: 14.0, color: secondaryTextColor),
+          labelSmall: GoogleFonts.poppins(
+              fontSize: 12.0,
+              color: Colors.blueGrey,
+              fontWeight: FontWeight.w500),
         ),
 
         colorScheme: const ColorScheme.light(
@@ -142,32 +150,35 @@ class MotorApp extends StatelessWidget {
           onError: Colors.white,
         ),
       ),
-
       initialRoute: isLoggedIn ? HomeScreen.routeName : LoginScreen.routeName,
-      
       routes: {
         LoginScreen.routeName: (context) => const LoginScreen(),
         RegisterScreen.routeName: (context) => const RegisterScreen(),
         HomeScreen.routeName: (context) => const HomeScreen(),
         HistoryScreen.routeName: (context) {
           final arguments = ModalRoute.of(context)?.settings.arguments;
-          if (arguments is Map<String, dynamic> && arguments.containsKey('vehicleId')) {
+          if (arguments is Map<String, dynamic> &&
+              arguments.containsKey('vehicleId')) {
             final vehicleId = arguments['vehicleId'] as int;
             final plateNumber = arguments['plateNumber'] as String?;
-            return HistoryScreen(vehicleId: vehicleId, plateNumber: plateNumber);
+            return HistoryScreen(
+                vehicleId: vehicleId, plateNumber: plateNumber);
           }
           return _buildErrorRoute("ID Kendaraan tidak valid untuk Riwayat.");
         },
         ScheduleScreen.routeName: (context) {
           final arguments = ModalRoute.of(context)?.settings.arguments;
-          if (arguments is Map<String, dynamic> && arguments.containsKey('vehicleId')) {
-             final vehicleId = arguments['vehicleId'] as String;
-             final plateNumber = arguments['plateNumber'] as String?;
-             return ScheduleScreen(vehicleId: vehicleId, plateNumber: plateNumber);
+          if (arguments is Map<String, dynamic> &&
+              arguments.containsKey('vehicleId')) {
+            final vehicleId = arguments['vehicleId'] as String;
+            final plateNumber = arguments['plateNumber'] as String?;
+            return ScheduleScreen(
+                vehicleId: vehicleId, plateNumber: plateNumber);
           }
           return _buildErrorRoute("ID Kendaraan tidak valid untuk Jadwal.");
         },
-        NotificationListScreen.routeName: (context) => const NotificationListScreen(),
+        NotificationListScreen.routeName: (context) =>
+            const NotificationListScreen(),
         ProfileScreen.routeName: (context) => const ProfileScreen(),
         ContactUsScreen.routeName: (context) => const ContactUsScreen(),
         SettingsScreen.routeName: (context) => const SettingsScreen(),

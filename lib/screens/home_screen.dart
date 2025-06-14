@@ -22,8 +22,8 @@ import '../widgets/app_drawer.dart';
 import 'history_screen.dart';
 import 'login_screen.dart';
 import 'notification_list_screen.dart';
-import 'profile_screen.dart';
 import 'schedule_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -61,7 +61,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   static const String _oliMesinServiceType = "Ganti Oli Mesin";
   static const int _defaultOilChangeIntervalMonths = 3;
   static const int _oilServiceIntervalKm = 2000;
-  static const int _serviceReminderKmThreshold = 500; // Notif jika kurang 500 KM
+  static const int _serviceReminderKmThreshold =
+      500; // Notif jika kurang 500 KM
   final String _baseImageUrl = "https://motocares.my.id";
 
   @override
@@ -72,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _requestNotificationPermissionIfNeeded();
     _setupNotificationClickListener();
   }
-  
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
@@ -438,8 +439,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             await prefs.remove(prefKeyReminder);
           }
         } else {
-          if (prefs.containsKey(prefKeyReminder)) await prefs.remove(prefKeyReminder);
-          if (prefs.containsKey(prefKeyOverdue)) await prefs.remove(prefKeyOverdue);
+          if (prefs.containsKey(prefKeyReminder))
+            await prefs.remove(prefKeyReminder);
+          if (prefs.containsKey(prefKeyOverdue))
+            await prefs.remove(prefKeyOverdue);
         }
       }
     }
@@ -609,7 +612,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
     return 0;
   }
-  
+
   //============================================================================
   // BAGIAN BUILD METHOD & WIDGETS (YANG DI-DESAIN ULANG)
   //============================================================================
@@ -681,11 +684,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           }
         }
       } else {
-         if (lastActualOilServiceDate != null) {
+        if (lastActualOilServiceDate != null) {
           DateTime estimatedNextDate = DateTime(
               lastActualOilServiceDate.year,
-              lastActualOilServiceDate.month +
-                  _defaultOilChangeIntervalMonths,
+              lastActualOilServiceDate.month + _defaultOilChangeIntervalMonths,
               lastActualOilServiceDate.day);
           final now = DateTime.now();
           final DateFormat formatter = DateFormat('yyyy-MM-dd');
@@ -704,15 +706,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         }
       }
     }
-    
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isLoading ? 'Memuat...' : (_primaryVehicle?.model ?? 'MotoCare Dashboard')),
+        title: Text(_isLoading
+            ? 'Memuat...'
+            : (_primaryVehicle?.model ?? 'MotoCare Dashboard')),
         elevation: 0, // AppBar lebih flat
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.pushNamed(context, NotificationListScreen.routeName),
+            icon: const Icon(Icons.settings_accessibility_outlined),
+            onPressed: () =>
+                Navigator.pushNamed(context, SettingsScreen.routeName),
           ),
         ],
       ),
@@ -722,7 +727,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           : _primaryVehicle == null
               ? _buildNoVehicleView()
               : RefreshIndicator(
-                  onRefresh: () => _loadInitialDashboardData(checkServiceNotif: true),
+                  onRefresh: () =>
+                      _loadInitialDashboardData(checkServiceNotif: true),
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(16.0),
@@ -749,7 +755,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         _buildNavigationGrid(),
                         const SizedBox(height: 24),
                         _buildTripTimeline(),
-                         const SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         _buildTrackingStatus(),
                       ],
                     ),
@@ -761,13 +767,16 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// WIDGET: Menampilkan header profil pengguna dan kendaraan.
   Widget _buildProfileHeader() {
     if (_primaryVehicle == null) return const SizedBox.shrink();
-    
+
     String? userPhotoPath = prefs.getString(UserService.prefUserPhotoUrl);
     ImageProvider<Object> userAvatarImage;
     if (userPhotoPath != null && userPhotoPath.isNotEmpty) {
-      userAvatarImage = NetworkImage(userPhotoPath.startsWith('http') ? userPhotoPath : _baseImageUrl + userPhotoPath);
+      userAvatarImage = NetworkImage(userPhotoPath.startsWith('http')
+          ? userPhotoPath
+          : _baseImageUrl + userPhotoPath);
     } else {
-      userAvatarImage = const AssetImage('assets/images/default_avatar.png'); // Pastikan Anda punya aset ini
+      userAvatarImage = const AssetImage(
+          'assets/images/default_avatar.png'); // Pastikan Anda punya aset ini
     }
 
     return Row(
@@ -776,7 +785,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           radius: 32,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           backgroundImage: userAvatarImage,
-           onBackgroundImageError: (exception, stackTrace) { /* Handle error */ },
+          onBackgroundImageError: (exception, stackTrace) {/* Handle error */},
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -789,26 +798,33 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
               Text(
                 prefs.getString(UserService.prefUserName) ?? "Pengguna",
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
                 overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
         // Logo Kendaraan
-        if (_primaryVehicle!.logoUrl != null && _primaryVehicle!.logoUrl!.isNotEmpty)
+        if (_primaryVehicle!.logoUrl != null &&
+            _primaryVehicle!.logoUrl!.isNotEmpty)
           Image.network(
-             _primaryVehicle!.logoUrl!.startsWith('http') ? _primaryVehicle!.logoUrl! : _baseImageUrl + _primaryVehicle!.logoUrl!,
+            _primaryVehicle!.logoUrl!.startsWith('http')
+                ? _primaryVehicle!.logoUrl!
+                : _baseImageUrl + _primaryVehicle!.logoUrl!,
             // === PERUBAHAN DI SINI ===
             height: 60, // Diperbesar dari 40
-            width: 60,  // Diperbesar dari 40
+            width: 60, // Diperbesar dari 40
             fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Icon(Icons.motorcycle, size: 50), // Disesuaikan
+            errorBuilder: (_, __, ___) =>
+                const Icon(Icons.motorcycle, size: 50), // Disesuaikan
           )
       ],
     );
   }
-  
+
   /// WIDGET: Kartu utama yang menampilkan odometer.
   Widget _buildOdometerCard() {
     return Card(
@@ -821,13 +837,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           padding: const EdgeInsets.all(20.0),
           child: Row(
             children: [
-              Icon(Icons.speed, size: 40, color: Theme.of(context).primaryColor),
+              Icon(Icons.speed,
+                  size: 40, color: Theme.of(context).primaryColor),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Odometer Saat Ini", style: Theme.of(context).textTheme.labelSmall),
+                    Text("Odometer Saat Ini",
+                        style: Theme.of(context).textTheme.labelSmall),
                     const SizedBox(height: 4),
                     Text(
                       _liveOdometerDisplay,
@@ -843,10 +861,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8)
-                ),
-                child: Icon(Icons.edit, size: 20, color: Theme.of(context).colorScheme.primary),
+                    color: Colors.blue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8)),
+                child: Icon(Icons.edit,
+                    size: 20, color: Theme.of(context).colorScheme.primary),
               ),
             ],
           ),
@@ -872,10 +890,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     Color statusColor = theme.colorScheme.primary;
     String statusText = daysRemaining;
 
-    if (status?.toUpperCase() == "OVERDUE" || daysRemaining.contains("TERLEWAT")) {
+    if (status?.toUpperCase() == "OVERDUE" ||
+        daysRemaining.contains("TERLEWAT")) {
       statusColor = theme.colorScheme.error;
       statusText = "TERLEWAT";
-    } else if (status?.toUpperCase() == "UPCOMING" || daysRemaining.contains("SEGERA") || daysRemaining.contains("Hari Ini")) {
+    } else if (status?.toUpperCase() == "UPCOMING" ||
+        daysRemaining.contains("SEGERA") ||
+        daysRemaining.contains("Hari Ini")) {
       statusColor = Colors.orange.shade800;
       statusText = "SEGERA";
     }
@@ -897,7 +918,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
             Padding(
               padding: const EdgeInsets.only(left: 40, top: 4),
-              child: Text("Servis Terakhir: $lastServiceDate", style: theme.textTheme.labelSmall),
+              child: Text("Servis Terakhir: $lastServiceDate",
+                  style: theme.textTheme.labelSmall),
             ),
             const Divider(height: 24, thickness: 1),
             Row(
@@ -907,9 +929,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("JADWAL BERIKUTNYA", style: theme.textTheme.labelSmall),
+                      Text("JADWAL BERIKUTNYA",
+                          style: theme.textTheme.labelSmall),
                       const SizedBox(height: 4),
-                      Text(nextServiceInfo, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                      Text(nextServiceInfo,
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ),
@@ -918,7 +943,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   children: [
                     Text("ESTIMASI", style: theme.textTheme.labelSmall),
                     const SizedBox(height: 4),
-                    Text(statusText, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: statusColor)),
+                    Text(statusText,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: statusColor)),
                   ],
                 )
               ],
@@ -970,24 +999,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           label: "Jadwal",
           onTap: () {
             if (_primaryVehicle != null) {
-              Navigator.pushNamed(context, ScheduleScreen.routeName, arguments: {
-                'vehicleId': _primaryVehicle!.vehicleId.toString(),
-                'plateNumber': _primaryVehicle!.plateNumber,
-              });
+              Navigator.pushNamed(context, ScheduleScreen.routeName,
+                  arguments: {
+                    'vehicleId': _primaryVehicle!.vehicleId.toString(),
+                    'plateNumber': _primaryVehicle!.plateNumber,
+                  });
             }
           },
         ),
         _buildNavigationButton(
-          icon: Icons.account_circle_outlined,
-          label: "Profil",
-          onTap: () => Navigator.pushNamed(context, ProfileScreen.routeName),
+          icon: Icons.notifications_outlined,
+          label: "Daftar Notifikasi",
+          onTap: () =>
+              Navigator.pushNamed(context, NotificationListScreen.routeName),
         ),
       ],
     );
   }
 
   /// WIDGET: Komponen tombol untuk grid navigasi.
-  Widget _buildNavigationButton({required IconData icon, required String label, required VoidCallback onTap}) {
+  Widget _buildNavigationButton(
+      {required IconData icon,
+      required String label,
+      required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -997,7 +1031,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           children: [
             Icon(icon, size: 32, color: Theme.of(context).primaryColor),
             const SizedBox(height: 8),
-            Text(label, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyMedium),
+            Text(label,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium),
           ],
         ),
       ),
@@ -1009,17 +1045,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Perjalanan Terakhir", style: Theme.of(context).textTheme.titleMedium),
+        Text("Perjalanan Terakhir",
+            style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         if (_isLoadingTrips)
-          const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
+          const Center(
+              child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator()))
         else if (_recentTrips.isEmpty)
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
-                  Icon(Icons.map_outlined, color: Theme.of(context).textTheme.bodyMedium?.color),
+                  Icon(Icons.map_outlined,
+                      color: Theme.of(context).textTheme.bodyMedium?.color),
                   const SizedBox(width: 12),
                   const Text("Belum ada data perjalanan."),
                 ],
@@ -1037,16 +1078,22 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 margin: const EdgeInsets.symmetric(vertical: 6.0),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
-                    child: Icon(Icons.route_outlined, color: Theme.of(context).primaryColor),
+                    backgroundColor:
+                        Theme.of(context).primaryColor.withOpacity(0.1),
+                    child: Icon(Icons.route_outlined,
+                        color: Theme.of(context).primaryColor),
                   ),
                   title: Text(
                     "Perjalanan ${trip.distanceKm.toStringAsFixed(1)} km",
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
-                  subtitle: Text(DateFormat('EEEE, dd MMMizzi • HH:mm', 'id_ID').format(trip.endTime!)),
+                  subtitle: Text(DateFormat('EEEE, dd MMMizzi • HH:mm', 'id_ID')
+                      .format(trip.endTime!)),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () { /* Navigasi ke detail trip jika ada */ },
+                  onTap: () {/* Navigasi ke detail trip jika ada */},
                 ),
               );
             },
@@ -1054,7 +1101,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ],
     );
   }
-  
+
   /// WIDGET: Tampilan ketika tidak ada kendaraan yang terdaftar.
   Widget _buildNoVehicleView() {
     return Center(
@@ -1080,7 +1127,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ElevatedButton.icon(
               icon: const Icon(Icons.refresh),
               label: const Text('Muat Ulang'),
-              onPressed: () => _loadInitialDashboardData(checkServiceNotif: true),
+              onPressed: () =>
+                  _loadInitialDashboardData(checkServiceNotif: true),
             )
           ],
         ),
@@ -1091,9 +1139,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// WIDGET: Status pelacakan di bagian bawah.
   Widget _buildTrackingStatus() {
     bool isTracking = _locationService.isTrackingActive();
-    Color statusColor = isTracking ? Colors.green.shade700 : Colors.red.shade700;
+    Color statusColor =
+        isTracking ? Colors.green.shade700 : Colors.red.shade700;
     IconData statusIcon = isTracking ? Icons.location_on : Icons.location_off;
-    String statusText = isTracking ? "Pelacakan perjalanan aktif" : "Pelacakan perjalanan tidak aktif";
+    String statusText = isTracking
+        ? "Pelacakan perjalanan aktif"
+        : "Pelacakan perjalanan tidak aktif";
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1106,7 +1157,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         children: [
           Icon(statusIcon, color: statusColor, size: 18),
           const SizedBox(width: 8),
-          Text(statusText, style: TextStyle(color: statusColor, fontWeight: FontWeight.w500)),
+          Text(statusText,
+              style:
+                  TextStyle(color: statusColor, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -1115,7 +1168,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   /// HELPER: Menghitung progres untuk LinearProgressIndicator.
   double _calculateProgress(int lastOdo, int currentOdo, int nextOdo) {
     if (nextOdo <= lastOdo) return 1.0; // Jika target tidak valid
-    
+
     int totalKmForInterval = nextOdo - lastOdo;
     int kmTravelledSinceLast = currentOdo - lastOdo;
 

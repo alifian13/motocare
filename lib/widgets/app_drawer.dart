@@ -1,6 +1,6 @@
 // lib/widgets/app_drawer.dart
 import 'package:flutter/material.dart';
-import 'package:motocare/screens/settings_screen.dart'; // <-- IMPORT HALAMAN PENGATURAN
+import 'package:motocare/screens/settings_screen.dart'; //
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/contact_us_screen.dart';
 import '../screens/profile_screen.dart';
@@ -9,7 +9,6 @@ import '../services/user_service.dart'; // Untuk konstanta kunci dan logout
 import '../screens/home_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/schedule_screen.dart';
-import '../screens/notification_list_screen.dart';
 import '../screens/login_screen.dart';
 
 class AppDrawer extends StatefulWidget {
@@ -159,40 +158,6 @@ class _AppDrawerState extends State<AppDrawer> {
               Navigator.pushNamed(context, ProfileScreen.routeName);
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.history_edu_outlined, size: 22),
-            title: const Text('Riwayat Perawatan',
-                style: TextStyle(fontSize: 14.5)),
-            onTap: () =>
-                _navigateToVehicleSpecificScreen(HistoryScreen.routeName),
-          ),
-          ListTile(
-            leading: const Icon(Icons.event_note_outlined, size: 22),
-            title: const Text('Jadwal Perawatan',
-                style: TextStyle(fontSize: 14.5)),
-            onTap: () =>
-                _navigateToVehicleSpecificScreen(ScheduleScreen.routeName),
-          ),
-          ListTile(
-            leading: const Icon(Icons.notifications_none_outlined, size: 22),
-            title: const Text('Notifikasi', style: TextStyle(fontSize: 14.5)),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, NotificationListScreen.routeName);
-            },
-          ),
-          
-          // --- MENU PENGATURAN YANG DITAMBAHKAN ---
-          ListTile(
-            leading: const Icon(Icons.settings_outlined, size: 22),
-            title: const Text('Pengaturan', style: TextStyle(fontSize: 14.5)),
-            onTap: () {
-              Navigator.pop(context); // Tutup drawer
-              Navigator.of(context).pushNamed(SettingsScreen.routeName);
-            },
-          ),
-          // ------------------------------------------
-
           const Divider(height: 1, thickness: 0.5),
           ListTile(
             leading: const Icon(Icons.contact_support_outlined, size: 22),
