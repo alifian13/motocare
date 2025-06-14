@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart' as loc;
+import 'package:motocare/widgets/riding_log_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../main.dart'; // Pastikan path ini benar
@@ -19,11 +20,13 @@ import '../services/notification_service.dart';
 import '../services/user_service.dart';
 import '../services/vehicle_service.dart';
 import '../widgets/app_drawer.dart';
+import '../widgets/profile_vehicle_header.dart'; // <-- IMPORT BARU
 import 'history_screen.dart';
 import 'login_screen.dart';
 import 'notification_list_screen.dart';
 import 'schedule_screen.dart';
 import 'settings_screen.dart';
+import 'trip_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -94,7 +97,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   //============================================================================
-  // BAGIAN LOGIKA & HELPER (KODE ASLI ANDA)
+  // BAGIAN LOGIKA & HELPER (TIDAK ADA PERUBAHAN)
+  // Semua fungsi logika asli Anda tetap dipertahankan di sini...
   //============================================================================
 
   void _setupNotificationClickListener() {
@@ -538,6 +542,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     try {
       _recentTrips = await _vehicleService
           .getRecentTrips(_primaryVehicle!.vehicleId.toString(), limit: 3);
+      // Urutkan perjalanan, terbaru di atas
+      _recentTrips.sort((a,b) => b.endTime!.compareTo(a.endTime!));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -619,6 +625,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // Logika perhitungan estimasi servis tetap sama
     final ScheduleItem? oliSchedule = _getScheduleByType(_oliMesinServiceType);
     int kmRemainingForOli = 0;
     String nextOliServiceInfo = "Jadwal oli belum tersedia";
@@ -712,10 +719,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         title: Text(_isLoading
             ? 'Memuat...'
             : (_primaryVehicle?.model ?? 'MotoCare Dashboard')),
-        elevation: 0, // AppBar lebih flat
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_accessibility_outlined),
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () =>
                 Navigator.pushNamed(context, SettingsScreen.routeName),
           ),
@@ -733,10 +740,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.stretch, // <-- Perubahan
                       children: [
-                        _buildProfileHeader(),
-                        const SizedBox(height: 24),
+                        // WIDGET HEADER BARU
+                        ProfileVehicleHeader(
+                          userName: prefs.getString(UserService.prefUserName),
+                          userPhotoUrl: prefs.getString(UserService.prefUserPhotoUrl),
+                          vehicleLogoUrl: _primaryVehicle?.logoUrl,
+                          baseImageUrl: _baseImageUrl,
+                        ),
+
+                        const SizedBox(height: 16), // <-- Perubahan spacing
+
+
+
+                        // Kartu Odometer dan Servis tetap sama
                         _buildOdometerCard(),
                         const SizedBox(height: 16),
                         _buildServiceInfoCard(
@@ -752,10 +770,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           nextOdo: targetOdoForDisplay,
                         ),
                         const SizedBox(height: 24),
+
                         _buildNavigationGrid(),
                         const SizedBox(height: 24),
-                        _buildTripTimeline(),
+
+                        // KARTU RIDING LOG BARU
+                        _buildRidingLogSection(),
                         const SizedBox(height: 24),
+                        
                         _buildTrackingStatus(),
                       ],
                     ),
@@ -764,68 +786,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// WIDGET: Menampilkan header profil pengguna dan kendaraan.
-  Widget _buildProfileHeader() {
-    if (_primaryVehicle == null) return const SizedBox.shrink();
 
-    String? userPhotoPath = prefs.getString(UserService.prefUserPhotoUrl);
-    ImageProvider<Object> userAvatarImage;
-    if (userPhotoPath != null && userPhotoPath.isNotEmpty) {
-      userAvatarImage = NetworkImage(userPhotoPath.startsWith('http')
-          ? userPhotoPath
-          : _baseImageUrl + userPhotoPath);
-    } else {
-      userAvatarImage = const AssetImage(
-          'assets/images/default_avatar.png'); // Pastikan Anda punya aset ini
-    }
-
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 32,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          backgroundImage: userAvatarImage,
-          onBackgroundImageError: (exception, stackTrace) {/* Handle error */},
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Selamat Datang,",
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Text(
-                prefs.getString(UserService.prefUserName) ?? "Pengguna",
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-        // Logo Kendaraan
-        if (_primaryVehicle!.logoUrl != null &&
-            _primaryVehicle!.logoUrl!.isNotEmpty)
-          Image.network(
-            _primaryVehicle!.logoUrl!.startsWith('http')
-                ? _primaryVehicle!.logoUrl!
-                : _baseImageUrl + _primaryVehicle!.logoUrl!,
-            // === PERUBAHAN DI SINI ===
-            height: 60, // Diperbesar dari 40
-            width: 60, // Diperbesar dari 40
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) =>
-                const Icon(Icons.motorcycle, size: 50), // Disesuaikan
-          )
-      ],
-    );
-  }
-
-  /// WIDGET: Kartu utama yang menampilkan odometer.
+  /// WIDGET: Kartu utama yang menampilkan odometer. (Tidak ada perubahan)
   Widget _buildOdometerCard() {
     return Card(
       elevation: 4.0,
@@ -873,7 +835,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// WIDGET: Kartu informasi servis dengan progress bar.
+  /// WIDGET: Kartu informasi servis dengan progress bar. (Tidak ada perubahan)
   Widget _buildServiceInfoCard({
     required String title,
     required String lastServiceDate,
@@ -973,7 +935,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// WIDGET: Grid untuk tombol navigasi utama.
+  /// WIDGET: Grid untuk tombol navigasi utama. (Tidak ada perubahan)
   Widget _buildNavigationGrid() {
     return GridView.count(
       crossAxisCount: 3,
@@ -1009,7 +971,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         _buildNavigationButton(
           icon: Icons.notifications_outlined,
-          label: "Daftar Notifikasi",
+          label: "Notifikasi", // Label diubah agar lebih singkat
           onTap: () =>
               Navigator.pushNamed(context, NotificationListScreen.routeName),
         ),
@@ -1017,7 +979,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// WIDGET: Komponen tombol untuk grid navigasi.
+  /// WIDGET: Komponen tombol untuk grid navigasi. (Tidak ada perubahan)
   Widget _buildNavigationButton(
       {required IconData icon,
       required String label,
@@ -1040,60 +1002,48 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// WIDGET: Menampilkan 3 perjalanan terakhir.
-  Widget _buildTripTimeline() {
+  // WIDGET BARU: Bagian untuk menampilkan Riding Log
+  Widget _buildRidingLogSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Perjalanan Terakhir",
-            style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          "Riding Log",
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 8),
         if (_isLoadingTrips)
           const Center(
-              child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: CircularProgressIndicator()))
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 40.0),
+              child: CircularProgressIndicator(),
+            ),
+          )
         else if (_recentTrips.isEmpty)
           Card(
-            child: Padding(
+            child: Container(
+              height: 120, // Beri tinggi agar terlihat
+              width: double.infinity,
               padding: const EdgeInsets.all(16.0),
-              child: Row(
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.map_outlined,
-                      color: Theme.of(context).textTheme.bodyMedium?.color),
-                  const SizedBox(width: 12),
-                  const Text("Belum ada data perjalanan."),
+                  Icon(Icons.map_outlined, color: Colors.grey),
+                  SizedBox(width: 12),
+                  Text("Belum ada perjalanan tercatat."),
                 ],
               ),
             ),
           )
         else
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _recentTrips.length,
-            itemBuilder: (context, index) {
-              final trip = _recentTrips[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 6.0),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor:
-                        Theme.of(context).primaryColor.withOpacity(0.1),
-                    child: Icon(Icons.route_outlined,
-                        color: Theme.of(context).primaryColor),
-                  ),
-                  title: Text(
-                    "Perjalanan ${trip.distanceKm.toStringAsFixed(1)} km",
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Text(DateFormat('EEEE, dd MMMizzi • HH:mm', 'id_ID')
-                      .format(trip.endTime!)),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {/* Navigasi ke detail trip jika ada */},
+          // Menggunakan widget RidingLogCard yang baru dibuat
+          RidingLogCard(
+            trip: _recentTrips.first, // Hanya tampilkan yang terbaru
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TripDetailScreen(trip: _recentTrips.first),
                 ),
               );
             },
@@ -1101,8 +1051,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ],
     );
   }
-
-  /// WIDGET: Tampilan ketika tidak ada kendaraan yang terdaftar.
+  /// WIDGET: Tampilan ketika tidak ada kendaraan yang terdaftar. (Tidak ada perubahan)
   Widget _buildNoVehicleView() {
     return Center(
       child: Padding(
@@ -1136,7 +1085,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// WIDGET: Status pelacakan di bagian bawah.
+  /// WIDGET: Status pelacakan di bagian bawah. (Tidak ada perubahan)
   Widget _buildTrackingStatus() {
     bool isTracking = _locationService.isTrackingActive();
     Color statusColor =
@@ -1165,7 +1114,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// HELPER: Menghitung progres untuk LinearProgressIndicator.
+  /// HELPER: Menghitung progres untuk LinearProgressIndicator. (Tidak ada perubahan)
   double _calculateProgress(int lastOdo, int currentOdo, int nextOdo) {
     if (nextOdo <= lastOdo) return 1.0; // Jika target tidak valid
 
@@ -1178,3 +1127,4 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return kmTravelledSinceLast / totalKmForInterval;
   }
 }
+
