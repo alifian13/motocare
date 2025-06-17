@@ -1,6 +1,4 @@
-// lib/models/service_history_item.dart
-// Untuk IconData jika masih mau digunakan di UI
-import 'package:intl/intl.dart';
+import '../utils/date_formatter.dart';
 
 class ServiceHistoryItem {
   final int historyId;
@@ -40,7 +38,7 @@ class ServiceHistoryItem {
   }
 
   String get formattedServiceDate {
-    return DateFormat('dd MMM yyyy').format(serviceDate);
+    return DateFormatter.toWibString(serviceDate, format: 'dd MMM yyyy');
   }
 }
 

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 import 'services/notification_service.dart';
 import 'screens/home_screen.dart';
@@ -26,7 +28,8 @@ void main() async {
   // Pastikan semua binding Flutter siap sebelum menjalankan kode.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi format tanggal dan waktu untuk locale 'id_ID' (Indonesia).
+  tz.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
   await initializeDateFormatting('id_ID', null);
 
   // Inisialisasi layanan notifikasi.

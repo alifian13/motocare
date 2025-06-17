@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/trip_model.dart';
+import '../utils/date_formatter.dart';
 
 class RidingLogCard extends StatelessWidget {
   final Trip trip;
@@ -35,9 +36,9 @@ class RidingLogCard extends StatelessWidget {
     // PERBAIKAN: Menggunakan trip.startAddress dan trip.endAddress
     final startLocation = trip.startAddress ?? 'Lokasi Awal Tidak Diketahui';
     final endLocation = trip.endAddress ?? 'Lokasi Akhir Tidak Diketahui';
-    final formattedDate = trip.endTime != null ? DateFormat('dd/MM/yyyy', 'id_ID').format(trip.endTime!) : 'N/A';
+    final formattedDate = DateFormatter.toWibString(trip.endTime, format: 'dd/MM/yyyy');
     final formattedTime = (trip.startTime != null && trip.endTime != null)
-        ? '${DateFormat.Hm('id_ID').format(trip.startTime!)} - ${DateFormat.Hm('id_ID').format(trip.endTime!)}'
+        ? '${DateFormatter.toWibString(trip.startTime, format: 'HH:mm')} - ${DateFormatter.toWibString(trip.endTime, format: 'HH:mm')}'
         : 'N/A';
 
     return InkWell(

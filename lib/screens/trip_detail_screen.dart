@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
-
+import '../utils/date_formatter.dart';
 import '../models/trip_model.dart';
 import '../services/routing_service.dart';
 
@@ -197,10 +197,7 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           Text('Perjalanan pada:',
               style: Theme.of(context).textTheme.titleMedium),
           Text(
-            widget.trip.startTime != null
-                ? DateFormat('EEEE, dd MMMM HH:mm', 'id_ID')
-                    .format(widget.trip.startTime!)
-                : 'Waktu tidak tersedia',
+            DateFormatter.toWibString(widget.trip.startTime, format: 'EEEE, dd MMMM HH:mm'),
             style: Theme.of(context)
                 .textTheme
                 .titleLarge

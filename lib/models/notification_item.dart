@@ -1,6 +1,6 @@
 // lib/models/notification_item.dart
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../utils/date_formatter.dart';
 
 class NotificationItem {
   final int notificationId;
@@ -45,7 +45,7 @@ class NotificationItem {
   }
 
   String get formattedCreatedAt {
-    return DateFormat('dd MMM yyyy, HH:mm').format(createdAt);
+    return DateFormatter.toWibString(createdAt);
   }
 
   Color getNotificationColor(BuildContext context) {
