@@ -4,7 +4,7 @@ class ProfileVehicleHeader extends StatelessWidget {
   final String? userName;
   final String? userPhotoUrl;
   final String? vehicleLogoUrl;
-  final String baseImageUrl; // URL dasar untuk gambar jika path-nya relatif
+  final String baseImageUrl;
 
   const ProfileVehicleHeader({
     super.key,
@@ -16,14 +16,12 @@ class ProfileVehicleHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Menentukan gambar avatar pengguna
     ImageProvider<Object> userAvatarImage;
     if (userPhotoUrl != null && userPhotoUrl!.isNotEmpty) {
       userAvatarImage = NetworkImage(userPhotoUrl!.startsWith('http')
           ? userPhotoUrl!
           : baseImageUrl + userPhotoUrl!);
     } else {
-      // Fallback jika tidak ada foto profil
       userAvatarImage = const AssetImage('assets/images/default_avatar.png');
     }
 
@@ -32,7 +30,6 @@ class ProfileVehicleHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Bagian Profil Pengguna
           Expanded(
             child: Row(
               children: [
@@ -41,7 +38,6 @@ class ProfileVehicleHeader extends StatelessWidget {
                   backgroundColor: Colors.grey.shade300,
                   backgroundImage: userAvatarImage,
                   onBackgroundImageError: (exception, stackTrace) {
-                    // Handle error jika gambar gagal dimuat
                     print("Error loading profile image: $exception");
                   },
                   child: (userPhotoUrl == null || userPhotoUrl!.isEmpty)
@@ -85,7 +81,6 @@ class ProfileVehicleHeader extends StatelessWidget {
               },
             )
           else
-            // Tampilkan placeholder jika tidak ada logo
             Container(
               height: 100,
               width: 100,

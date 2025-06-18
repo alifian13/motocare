@@ -1,11 +1,9 @@
-// lib/widgets/app_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:motocare/screens/settings_screen.dart'; //
 import 'package:shared_preferences/shared_preferences.dart';
 import '../screens/contact_us_screen.dart';
 import '../screens/profile_screen.dart';
-import '../services/user_service.dart'; // Untuk konstanta kunci dan logout
-// Impor layar yang akan dinavigasi
+import '../services/user_service.dart';
 import '../screens/home_screen.dart';
 import '../screens/history_screen.dart';
 import '../screens/schedule_screen.dart';
@@ -22,7 +20,6 @@ class _AppDrawerState extends State<AppDrawer> {
   String _userName = "Nama Pengguna";
   String _userEmail = "email@pengguna.com";
   String? _userPhotoUrl;
-  // Sesuaikan dengan _baseImageUrl di home_screen.dart
   final String _baseImageUrl = "https://motocares.my.id";
 
   @override
@@ -44,7 +41,6 @@ class _AppDrawerState extends State<AppDrawer> {
     }
   }
 
-  // Helper untuk navigasi yang memerlukan vehicleId
   void _navigateToVehicleSpecificScreen(String routeName) async {
     Navigator.pop(context); // Tutup drawer dulu
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -54,9 +50,9 @@ class _AppDrawerState extends State<AppDrawer> {
       Map<String, dynamic> arguments = {};
       if (routeName == HistoryScreen.routeName) {
         arguments['vehicleId'] =
-            int.tryParse(vehicleIdString); // HistoryScreen butuh int
+            int.tryParse(vehicleIdString);
       } else if (routeName == ScheduleScreen.routeName) {
-        arguments['vehicleId'] = vehicleIdString; // ScheduleScreen butuh String
+        arguments['vehicleId'] = vehicleIdString;
       }
 
       if (arguments['vehicleId'] != null) {
@@ -109,7 +105,6 @@ class _AppDrawerState extends State<AppDrawer> {
               onBackgroundImageError: (_, __) {
                 if (mounted) {
                   setState(() {
-                    // Fallback jika NetworkImage gagal
                     avatarImage =
                         const AssetImage('assets/images/default_avatar.png');
                   });

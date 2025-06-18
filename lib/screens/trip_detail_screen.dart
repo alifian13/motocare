@@ -1,5 +1,3 @@
-// lib/screens/trip_detail_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +17,6 @@ class TripDetailScreen extends StatefulWidget {
 
 class _TripDetailScreenState extends State<TripDetailScreen> {
   final RoutingService _routingService = RoutingService();
-  // Kontroler untuk berinteraksi dengan peta secara programatik
   final MapController _mapController = MapController();
   List<LatLng> _routePoints = [];
   bool _isLoading = true;
@@ -33,13 +30,11 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
 
   @override
   void dispose() {
-    // Pastikan untuk melepaskan controller saat widget tidak digunakan
     _mapController.dispose();
     super.dispose();
   }
 
   Future<void> _fetchRoute() async {
-    // Pastikan ada koordinat awal dan akhir
     if (widget.trip.startLatitude != null &&
         widget.trip.startLongitude != null &&
         widget.trip.endLatitude != null &&
@@ -57,18 +52,11 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
               _isLoading = false;
             });
 
-            // Setelah rute didapat dan widget selesai dibangun,
-            // paskan kamera ke rute secara otomatis.
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              // PERBAIKAN: Pengecekan 'isReady' dihapus karena sudah tidak ada di API baru.
-              // Controller siap digunakan setelah frame pertama selesai dibangun.
-              
-              // PERBAIKAN: Argumen untuk fitCamera disesuaikan dengan API baru.
-              // Objek CameraFit dilewatkan langsung sebagai argumen posisi.
               _mapController.fitCamera(
                 CameraFit.bounds(
                   bounds: LatLngBounds.fromPoints(_routePoints),
-                  padding: const EdgeInsets.all(50.0), // Beri sedikit padding
+                  padding: const EdgeInsets.all(50.0),
                 ),
               );
             });
@@ -133,14 +121,12 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
 
   Widget _buildMap() {
     return FlutterMap(
-      // Gunakan mapController yang sudah dibuat
       mapController: _mapController,
       options: MapOptions(
-        // Posisi awal sebelum fitCamera dijalankan
         initialCenter: _routePoints.isNotEmpty
             ? LatLng((_routePoints.first.latitude + _routePoints.last.latitude) / 2,
                        (_routePoints.first.longitude + _routePoints.last.longitude) / 2)
-            : const LatLng(-7.7956, 110.3695), // Fallback ke pusat Jogja
+            : const LatLng(-7.7956, 110.3695),
         initialZoom: 14,
         interactionOptions: const InteractionOptions(
           // Aktifkan semua interaksi (zoom, geser)
@@ -152,7 +138,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.example.motocare',
         ),
-        // Jangan tampilkan layer rute jika poinnya kosong
         if (_routePoints.isNotEmpty)
           PolylineLayer(
             polylines: [
@@ -163,7 +148,6 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
               ),
             ],
           ),
-        // Jangan tampilkan marker jika poinnya kosong
         if (_routePoints.isNotEmpty)
           MarkerLayer(
             markers: [

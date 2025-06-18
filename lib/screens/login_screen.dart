@@ -1,7 +1,6 @@
-// lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import '../services/user_service.dart';
-import 'register_screen.dart'; // <-- TAMBAHKAN IMPOR INI
+import 'register_screen.dart'; 
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -46,8 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       if (result['success'] == true) {
-        // Arahkan ke HomeScreen menggunakan routeName jika ada
-        Navigator.pushNamedAndRemoveUntil(context, HomeScreen.routeName, (route) => false); // Pastikan HomeScreen punya routeName
+        Navigator.pushNamedAndRemoveUntil(context, HomeScreen.routeName, (route) => false); 
       } else {
         setState(() {
           _errorMessage = result['message'] ?? 'Login gagal. Silakan coba lagi.';
@@ -68,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: const Text('Login MotoCare'),
         centerTitle: true,
-        automaticallyImplyLeading: false, // Tidak ada tombol kembali, sudah benar
+        automaticallyImplyLeading: false,
       ),
       body: Center(
   child: SingleChildScrollView(
@@ -155,4 +153,4 @@ class _LoginScreenState extends State<LoginScreen> {
 ),
     );
   }
-} // Kurung kurawal penutup ekstra telah dihapus dari sini
+}

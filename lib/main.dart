@@ -17,29 +17,23 @@ import 'screens/profile_screen.dart';
 import 'screens/contact_us_screen.dart';
 import 'screens/settings_screen.dart';
 
-// Global StreamController untuk event klik notifikasi.
 final StreamController<String?> notificationPayloadStream =
     StreamController<String?>.broadcast();
 
-// Inisialisasi service notifikasi sebagai instance global.
 final NotificationService notificationService = NotificationService();
 
 void main() async {
-  // Pastikan semua binding Flutter siap sebelum menjalankan kode.
   WidgetsFlutterBinding.ensureInitialized();
 
   tz.initializeTimeZones();
   tz.setLocalLocation(tz.getLocation('Asia/Jakarta'));
   await initializeDateFormatting('id_ID', null);
 
-  // Inisialisasi layanan notifikasi.
   await notificationService.initializeNotifications(notificationPayloadStream);
 
-  // Periksa status login pengguna dari penyimpanan lokal.
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? token = prefs.getString('token');
 
-  // Jalankan aplikasi, dengan menentukan status login awal.
   runApp(MotorApp(isLoggedIn: token != null && token.isNotEmpty));
 }
 
@@ -49,7 +43,6 @@ class MotorApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // === PALET WARNA & TEMA PROFESIONAL ===
     const Color primaryColor = Color(0xFF0D47A1);
     const Color secondaryColor = Color(0xFF1976D2);
     const Color accentColor = Color(0xFF42A5F5);
@@ -113,8 +106,6 @@ class MotorApp extends StatelessWidget {
           ),
         ),
 
-        // === PERBAIKAN DI SINI ===
-        // Menggunakan CardThemeData, bukan CardTheme
         cardTheme: CardThemeData(
           elevation: 2,
           shadowColor: Colors.black.withOpacity(0.05),

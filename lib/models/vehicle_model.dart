@@ -1,14 +1,12 @@
-// lib/models/vehicle_model.dart
-
 class Vehicle {
   final int vehicleId;
   final int userId;
   final String plateNumber;
   final String brand;
   final String model;
-  int currentOdometer; // Dibuat non-final agar bisa diupdate di UI
+  int currentOdometer;
   final DateTime? lastOdometerUpdate;
-  final String? lastServiceDate; // Disimpan sebagai String YYYY-MM-DD
+  final String? lastServiceDate;
   final String? photoUrl;
   final String? logoUrl;
   final DateTime? createdAt;

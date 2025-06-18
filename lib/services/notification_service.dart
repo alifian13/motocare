@@ -1,5 +1,4 @@
-// lib/services/notification_service.dart
-import 'dart:async'; // Untuk StreamController
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
@@ -10,7 +9,7 @@ import 'package:motocare/services/api_service.dart';
 class NotificationService {
   final ApiService _apiService = ApiService();
   static final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  StreamController<String?>? _payloadStreamController; // Deklarasikan di sini
+  StreamController<String?>? _payloadStreamController;
 
   static const AndroidNotificationChannel channel = AndroidNotificationChannel(
     'motocare_channel_id',
@@ -20,9 +19,8 @@ class NotificationService {
     playSound: true,
   );
 
-  // Modifikasi initializeNotifications untuk menerima StreamController
   Future<void> initializeNotifications(StreamController<String?> payloadStreamController) async {
-    _payloadStreamController = payloadStreamController; // Simpan stream controller
+    _payloadStreamController = payloadStreamController;
 
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -41,8 +39,8 @@ class NotificationService {
 
     await _flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse, // Gunakan method instance
-      onDidReceiveBackgroundNotificationResponse: notificationTapBackground // Tetap static jika perlu
+      onDidReceiveNotificationResponse: _onDidReceiveNotificationResponse,
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground
     );
 
     if (Platform.isAndroid) {
@@ -58,27 +56,17 @@ class NotificationService {
     final String? payload = notificationResponse.payload;
     if (payload != null) {
       debugPrint('KLIK NOTIFIKASI (foreground/background active) - PAYLOAD: $payload');
-      _payloadStreamController?.add(payload); // Kirim payload ke stream
+      _payloadStreamController?.add(payload);
     }
   }
 
-  // Handler statis untuk tap notifikasi dari background (jika app terminated dan dihidupkan dari notif)
-  // Perlu setup tambahan yang lebih kompleks untuk skenario ini,
-  // StreamController mungkin tidak langsung berfungsi jika app benar-benar baru dimulai dari terminated.
-  // Untuk sekarang, fokus pada saat app di background (paused) atau foreground.
   @pragma('vm:entry-point')
   static void notificationTapBackground(NotificationResponse notificationResponse) {
     debugPrint('KLIK NOTIFIKASI (BACKGROUND/TERMINATED NATIVE HANDLER) - PAYLOAD: ${notificationResponse.payload}');
-    // TODO: Untuk kasus terminated, Anda mungkin perlu menyimpan payload ini ke SharedPreferences
-    // dan memeriksanya saat aplikasi dimulai di main.dart atau HomeScreen.
-    // Untuk kasus background (paused), _payloadStreamController.add(payload) dari _onDidReceiveNotificationResponse
-    // seharusnya cukup jika instance NotificationService dan stream masih hidup.
-    // Jika NotificationService di re-create, maka stream perlu di re-subscribe.
   }
 
 
   Future<List<model.NotificationItem>> getMyNotifications() async {
-    // ... (getMyNotifications tidak berubah)
     try {
       final response = await _apiService.get('/notifications/my-notifications');
       if (response.statusCode == 200) {
@@ -98,7 +86,6 @@ class NotificationService {
   }
 
   Future<Map<String, dynamic>> markNotificationAsRead(int notificationId) async {
-    // ... (markNotificationAsRead tidak berubah)
     try {
       final response = await _apiService.put('/notifications/${notificationId.toString()}/read', {});
       final responseBody = jsonDecode(response.body);
@@ -118,7 +105,6 @@ class NotificationService {
       required String title,
       required String body,
       String? payload}) async {
-    // ... (showLocalNotification tidak berubah signifikan, pastikan izin sudah dihandle)
     print("[NotificationService] Mencoba menampilkan notifikasi lokal: ID $id, Title: $title");
 
     if (Platform.isAndroid) {
@@ -134,7 +120,6 @@ class NotificationService {
             }
             print("[NotificationService] Izin notifikasi DIBERIKAN oleh pengguna.");
         } else {
-          // print("[NotificationService] Izin notifikasi sudah ada atau tidak berlaku (Android < 13).");
         }
     }
 

@@ -1,14 +1,13 @@
-// lib/screens/profile_screen.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/user_service.dart';
-import '../models/user_data_model.dart'; // <-- TAMBAHKAN IMPOR UserData
+import '../models/user_data_model.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
-  static const routeName = '/profile'; // Tambahkan routeName
+  static const routeName = '/profile';
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -31,7 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _errorMessage;
 
   final String _baseImageUrl =
-      "https://motocares.my.id"; // Sesuaikan jika backend Anda di alamat lain
+      "https://motocares.my.id";
 
   @override
   void initState() {
@@ -52,19 +51,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _errorMessage = null;
     });
 
-    // Langsung gunakan UserData? dari service
     final UserData? userDataProfile = await _userService.getUserProfile();
     if (!mounted) return;
 
     if (userDataProfile != null) {
-      // Jika tidak null, berarti sukses
       try {
         setState(() {
           _userName = userDataProfile.name;
           _userEmail = userDataProfile.email;
           _userAddress = userDataProfile.address;
           _userPhotoUrl =
-              userDataProfile.userPhotoUrl; // Menggunakan field dari UserData
+              userDataProfile.userPhotoUrl; 
           _nameEditController.text = _userName ?? '';
           _isLoading = false;
         });
@@ -76,7 +73,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
     } else {
-      // Jika null, berarti gagal
       setState(() {
         _errorMessage = 'Gagal memuat profil.';
         _isLoading = false;
@@ -95,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           _imageFile = File(pickedFile.path);
         });
-        _uploadProfilePicture(); // Panggil fungsi yang benar
+        _uploadProfilePicture();
       }
     } catch (e) {
       if (mounted) {
@@ -115,7 +111,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _isUploading = true;
     });
 
-    // Panggil metode yang benar di UserService, yang sekarang updateUserProfilePicture
     final result = await _userService.updateUserProfilePicture(_imageFile!);
     if (!mounted) return;
 
@@ -124,11 +119,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
     if (result['success'] == true && result['data'] != null) {
       setState(() {
-        // Backend mengembalikan 'filePath', yang merupakan URL relatif
         _userPhotoUrl = result['data']['filePath'];
-        _imageFile = null; // Bersihkan imageFile setelah berhasil
+        _imageFile = null; 
       });
-      // Perbarui juga photoUrl di SharedPreferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
       if (_userPhotoUrl != null) {
         await prefs.setString('user_photo_url', _userPhotoUrl!);
@@ -160,7 +153,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
 
       final newName = _nameEditController.text.trim();
-      // Panggil metode yang benar di UserService
       final result = await _userService.updateUserName(newName);
       if (!mounted) return;
 
@@ -170,14 +162,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (result['success'] == true && result['data'] != null) {
         final updatedUserName = result['data']['user']
-            ?['name']; // Sesuaikan dengan struktur respons backend
+            ?['name'];
         if (updatedUserName != null) {
           setState(() {
             _userName = updatedUserName;
           });
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString(
-              'user_name', updatedUserName); // Update juga di SharedPreferences
+              'user_name', updatedUserName);
         }
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -238,7 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _errorMessage != null &&
                   _userName ==
-                      null // Tampilkan error jika data profil utama gagal dimuat
+                      null 
               ? Center(
                   child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -259,7 +251,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ))
               : RefreshIndicator(
-                  // RefreshIndicator tetap ada untuk data yang sudah ada
                   onRefresh: _loadUserProfile,
                   child: ListView(
                     padding: const EdgeInsets.all(20.0),
@@ -290,7 +281,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 onTap: _isUploading
                                     ? null
                                     : () => _showImageSourceActionSheet(
-                                        context), // Nonaktifkan saat uploading
+                                        context),
                                 child: CircleAvatar(
                                   radius: 20,
                                   backgroundColor:

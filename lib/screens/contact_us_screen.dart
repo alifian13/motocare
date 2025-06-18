@@ -1,16 +1,13 @@
-// lib/screens/contact_us_screen.dart
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart'; // Untuk membuka link email dan telepon
+import 'package:url_launcher/url_launcher.dart'; 
 
 class ContactUsScreen extends StatelessWidget {
   const ContactUsScreen({super.key});
   static const routeName = '/contact-us';
 
-  // Fungsi untuk meluncurkan URL (email atau telepon)
   Future<void> _launchUrl(String urlString) async {
     final Uri url = Uri.parse(urlString);
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      // Bisa tambahkan fallback atau pesan error jika gagal launch
       print('Could not launch $url');
     }
   }
@@ -18,8 +15,8 @@ class ContactUsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const String emailDeveloper = 'ilhamm6812@gmail.com';
-    const String phoneDeveloper = '+6285325814769'; // Format internasional untuk WhatsApp/Telepon
-    const String whatsappNumber = '6285325814769'; // Nomor tanpa + untuk link WhatsApp
+    const String phoneDeveloper = '+6285325814769'; 
+    const String whatsappNumber = '6285325814769';
 
     return Scaffold(
       appBar: AppBar(
@@ -34,7 +31,7 @@ class ContactUsScreen extends StatelessWidget {
           children: <Widget>[
             Center(
               child: Icon(
-                Icons.support_agent, // Atau Icons.contact_mail
+                Icons.support_agent,
                 size: 80,
                 color: Theme.of(context).primaryColor,
               ),
@@ -78,7 +75,7 @@ class ContactUsScreen extends StatelessWidget {
                     ),
                     const Divider(),
                     ListTile(
-                      leading: Icon(Icons.message_outlined, color: Theme.of(context).primaryColor), // Bisa ganti ikon WhatsApp jika ada
+                      leading: Icon(Icons.message_outlined, color: Theme.of(context).primaryColor),
                       title: const Text('WhatsApp', style: TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: const Text(phoneDeveloper),
                       onTap: () => _launchUrl('https://wa.me/$whatsappNumber?text=Halo,%20saya%20ingin%20bertanya%20tentang%20aplikasi%20MotoCare.'),

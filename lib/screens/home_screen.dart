@@ -1,4 +1,3 @@
-// lib/screens/home_screen.dart
 import 'dart:async';
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
@@ -9,7 +8,7 @@ import 'package:location/location.dart' as loc;
 import 'package:motocare/widgets/riding_log_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../main.dart'; // Pastikan path ini benar
+import '../../main.dart';
 import '../models/schedule_item.dart';
 import '../models/service_history_item.dart';
 import '../models/trip_model.dart';
@@ -20,7 +19,7 @@ import '../services/notification_service.dart';
 import '../services/user_service.dart';
 import '../services/vehicle_service.dart';
 import '../widgets/app_drawer.dart';
-import '../widgets/profile_vehicle_header.dart'; // <-- IMPORT BARU
+import '../widgets/profile_vehicle_header.dart';
 import 'history_screen.dart';
 import 'login_screen.dart';
 import 'notification_list_screen.dart';
@@ -37,14 +36,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
-  // === SERVICES & CONTROLLERS ===
   final NotificationService _notificationService = NotificationService();
   final UserService _userService = UserService();
   final VehicleService _vehicleService = VehicleService();
   final LocationService _locationService = LocationService();
   StreamSubscription? _notificationPayloadSubscription;
 
-  // === STATE VARIABLES ===
   bool _isLoading = true;
   UserData? _displayData;
   Vehicle? _primaryVehicle;
@@ -60,12 +57,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   TentativeTripData? _pendingTripConfirmationData;
 
-  // === CONSTANTS ===
   static const String _oliMesinServiceType = "Ganti Oli Mesin";
   static const int _defaultOilChangeIntervalMonths = 3;
   static const int _oilServiceIntervalKm = 2000;
-  static const int _serviceReminderKmThreshold =
-      500; // Notif jika kurang 500 KM
+  static const int _serviceReminderKmThreshold =50;
   final String _baseImageUrl = "https://motocares.my.id";
 
   @override
@@ -95,11 +90,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     _locationService.stopTracking();
     super.dispose();
   }
-
-  //============================================================================
-  // BAGIAN LOGIKA & HELPER (TIDAK ADA PERUBAHAN)
-  // Semua fungsi logika asli Anda tetap dipertahankan di sini...
-  //============================================================================
 
   void _setupNotificationClickListener() {
     _notificationPayloadSubscription =
@@ -619,11 +609,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return 0;
   }
 
-  //============================================================================
-  // BAGIAN BUILD METHOD & WIDGETS (YANG DI-DESAIN ULANG)
-  //============================================================================
-
-  @override
   Widget build(BuildContext context) {
     // Logika perhitungan estimasi servis tetap sama
     final ScheduleItem? oliSchedule = _getScheduleByType(_oliMesinServiceType);
@@ -740,9 +725,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch, // <-- Perubahan
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // WIDGET HEADER BARU
                         ProfileVehicleHeader(
                           userName: prefs.getString(UserService.prefUserName),
                           userPhotoUrl: prefs.getString(UserService.prefUserPhotoUrl),
@@ -750,11 +734,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           baseImageUrl: _baseImageUrl,
                         ),
 
-                        const SizedBox(height: 16), // <-- Perubahan spacing
+                        const SizedBox(height: 16), 
 
-
-
-                        // Kartu Odometer dan Servis tetap sama
                         _buildOdometerCard(),
                         const SizedBox(height: 16),
                         _buildServiceInfoCard(
@@ -774,7 +755,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         _buildNavigationGrid(),
                         const SizedBox(height: 24),
 
-                        // KARTU RIDING LOG BARU
                         _buildRidingLogSection(),
                         const SizedBox(height: 24),
                         
@@ -786,8 +766,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-
-  /// WIDGET: Kartu utama yang menampilkan odometer. (Tidak ada perubahan)
   Widget _buildOdometerCard() {
     return Card(
       elevation: 4.0,
@@ -835,7 +813,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// WIDGET: Kartu informasi servis dengan progress bar. (Tidak ada perubahan)
   Widget _buildServiceInfoCard({
     required String title,
     required String lastServiceDate,
@@ -935,7 +912,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// WIDGET: Grid untuk tombol navigasi utama. (Tidak ada perubahan)
   Widget _buildNavigationGrid() {
     return GridView.count(
       crossAxisCount: 3,
@@ -971,7 +947,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         _buildNavigationButton(
           icon: Icons.notifications_outlined,
-          label: "Notifikasi", // Label diubah agar lebih singkat
+          label: "Notifikasi",
           onTap: () =>
               Navigator.pushNamed(context, NotificationListScreen.routeName),
         ),
@@ -979,7 +955,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// WIDGET: Komponen tombol untuk grid navigasi. (Tidak ada perubahan)
   Widget _buildNavigationButton(
       {required IconData icon,
       required String label,
@@ -1002,7 +977,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  // WIDGET BARU: Bagian untuk menampilkan Riding Log
   Widget _buildRidingLogSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1022,7 +996,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         else if (_recentTrips.isEmpty)
           Card(
             child: Container(
-              height: 120, // Beri tinggi agar terlihat
+              height: 120, 
               width: double.infinity,
               padding: const EdgeInsets.all(16.0),
               child: const Row(
@@ -1036,9 +1010,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ),
           )
         else
-          // Menggunakan widget RidingLogCard yang baru dibuat
           RidingLogCard(
-            trip: _recentTrips.first, // Hanya tampilkan yang terbaru
+            trip: _recentTrips.first, 
             onTap: () {
               Navigator.push(
                 context,
@@ -1051,7 +1024,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       ],
     );
   }
-  /// WIDGET: Tampilan ketika tidak ada kendaraan yang terdaftar. (Tidak ada perubahan)
+
   Widget _buildNoVehicleView() {
     return Center(
       child: Padding(
@@ -1085,7 +1058,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// WIDGET: Status pelacakan di bagian bawah. (Tidak ada perubahan)
   Widget _buildTrackingStatus() {
     bool isTracking = _locationService.isTrackingActive();
     Color statusColor =
@@ -1114,9 +1086,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  /// HELPER: Menghitung progres untuk LinearProgressIndicator. (Tidak ada perubahan)
   double _calculateProgress(int lastOdo, int currentOdo, int nextOdo) {
-    if (nextOdo <= lastOdo) return 1.0; // Jika target tidak valid
+    if (nextOdo <= lastOdo) return 1.0; 
 
     int totalKmForInterval = nextOdo - lastOdo;
     int kmTravelledSinceLast = currentOdo - lastOdo;

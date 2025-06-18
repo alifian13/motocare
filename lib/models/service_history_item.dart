@@ -9,7 +9,6 @@ class ServiceHistoryItem {
   final String? description;
   final String? workshopName;
   final double? cost;
-  // final IconData icon; // Anda bisa tentukan icon di UI berdasarkan serviceType
 
   ServiceHistoryItem({
     required this.historyId,
@@ -20,7 +19,6 @@ class ServiceHistoryItem {
     this.description,
     this.workshopName,
     this.cost,
-    // required this.icon,
   });
 
   factory ServiceHistoryItem.fromJson(Map<String, dynamic> json) {
@@ -33,7 +31,6 @@ class ServiceHistoryItem {
       description: json['description'] as String?,
       workshopName: json['workshop_name'] as String?,
       cost: json['cost'] != null ? double.tryParse(json['cost'].toString()) : null,
-      // icon: _getIconForServiceType(json['service_type'] as String), // Logika icon di UI
     );
   }
 
@@ -41,13 +38,3 @@ class ServiceHistoryItem {
     return DateFormatter.toWibString(serviceDate, format: 'dd MMM yyyy');
   }
 }
-
-// Contoh helper untuk menentukan icon berdasarkan tipe servis (opsional, bisa di UI langsung)
-// IconData _getIconForServiceType(String serviceType) {
-//   if (serviceType.toLowerCase().contains('oli')) {
-//     return Icons.opacity_outlined;
-//   } else if (serviceType.toLowerCase().contains('cvt')) {
-//     return Icons.settings_applications_outlined;
-//   }
-//   return Icons.build_outlined; // Default icon
-// }

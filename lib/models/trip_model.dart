@@ -1,5 +1,3 @@
-// lib/models/trip_model.dart
-
 class Trip {
   final int tripId;
   final int vehicleId;
@@ -10,8 +8,8 @@ class Trip {
   final double? startLongitude;
   final double? endLatitude;
   final double? endLongitude;
-  final String? startAddress; // <-- TAMBAHKAN FIELD INI
-  final String? endAddress;   // <-- TAMBAHKAN FIELD INI
+  final String? startAddress;
+  final String? endAddress; 
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -25,8 +23,8 @@ class Trip {
     this.startLongitude,
     this.endLatitude,
     this.endLongitude,
-    this.startAddress, // <-- TAMBAHKAN KE KONSTRUKTOR
-    this.endAddress,   // <-- TAMBAHKAN KE KONSTRUKTOR
+    this.startAddress, 
+    this.endAddress, 
     this.createdAt,
     this.updatedAt,
   });
@@ -66,13 +64,12 @@ class Trip {
               ? (double.tryParse(json['end_longitude']))
               : (json['end_longitude'] as num?)?.toDouble())
           : null,
-      // Parsing field alamat dari JSON (pastikan nama field di JSON sesuai, misal 'start_address')
-      startAddress: json['start_address'] as String?, // <-- PARSING DARI JSON
-      endAddress: json['end_address'] as String?,     // <-- PARSING DARI JSON
-      createdAt: json['created_at'] != null // Backend menggunakan underscored, jadi 'created_at'
+      startAddress: json['start_address'] as String?,
+      endAddress: json['end_address'] as String?, 
+      createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
           : null,
-      updatedAt: json['updated_at'] != null // Backend menggunakan underscored, jadi 'updated_at'
+      updatedAt: json['updated_at'] != null
           ? DateTime.tryParse(json['updated_at'] as String)
           : null,
     );
@@ -89,8 +86,8 @@ class Trip {
       'start_longitude': startLongitude,
       'end_latitude': endLatitude,
       'end_longitude': endLongitude,
-      'start_address': startAddress, // <-- TAMBAHKAN KE toJson JIKA PERLU
-      'end_address': endAddress,     // <-- TAMBAHKAN KE toJson JIKA PERLU
+      'start_address': startAddress,
+      'end_address': endAddress, 
       'created_at': createdAt?.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };

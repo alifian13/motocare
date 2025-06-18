@@ -1,7 +1,6 @@
-// lib/screens/notification_list_screen.dart
 import 'package:flutter/material.dart';
 import '../models/notification_item.dart';
-import '../services/notification_service.dart'; // <-- GUNAKAN NotificationService
+import '../services/notification_service.dart';
 
 class NotificationListScreen extends StatefulWidget {
   const NotificationListScreen({super.key});
@@ -12,7 +11,7 @@ class NotificationListScreen extends StatefulWidget {
 }
 
 class _NotificationListScreenState extends State<NotificationListScreen> {
-  final NotificationService _notificationService = NotificationService(); // <-- Gunakan NotificationService
+  final NotificationService _notificationService = NotificationService(); 
   late Future<List<NotificationItem>> _notificationsFuture;
 
   @override
@@ -24,7 +23,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
   Future<void> _loadNotifications() async {
     if (!mounted) return;
     setState(() {
-      _notificationsFuture = _notificationService.getMyNotifications(); // Panggil dari _notificationService
+      _notificationsFuture = _notificationService.getMyNotifications();
     });
   }
 
@@ -34,7 +33,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
     final result = await _notificationService.markNotificationAsRead(item.notificationId);
     if (mounted) {
       if (result['success']) {
-        _loadNotifications(); // Muat ulang daftar notifikasi
+        _loadNotifications(); 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Notifikasi "${item.title}" ditandai sudah dibaca.'), duration: const Duration(seconds: 2)),
         );
@@ -58,9 +57,9 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center( /* ... UI Error ... */ );
+            return Center();
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center( /* ... UI Kosong ... */ );
+            return const Center();
           }
           final notificationItems = snapshot.data!;
           return RefreshIndicator(

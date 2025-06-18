@@ -1,13 +1,11 @@
-// lib/services/api_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../utils/constants.dart'; // Pastikan path ini benar
+import '../utils/constants.dart';
 
 class ApiService {
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    // Berdasarkan kode login_screen Anda, key yang benar adalah 'token'
     return prefs.getString('token');
   }
 
@@ -27,8 +25,8 @@ class ApiService {
   Future<http.Response> get(String endpoint, {bool requiresAuth = true}) async {
     final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     final headers = await _getHeaders(requiresAuth: requiresAuth);
-    print('[ApiService] GET: $url'); // Logging
-    print('[ApiService] Headers: $headers'); // Logging
+    print('[ApiService] GET: $url'); 
+    print('[ApiService] Headers: $headers'); 
     return http.get(url, headers: headers);
   }
 
@@ -37,9 +35,9 @@ class ApiService {
     final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     final headers = await _getHeaders(requiresAuth: requiresAuth);
     final encodedBody = jsonEncode(body);
-    print('[ApiService] POST: $url'); // Logging
-    print('[ApiService] Headers: $headers'); // Logging
-    print('[ApiService] Body: $encodedBody'); // Logging
+    print('[ApiService] POST: $url'); 
+    print('[ApiService] Headers: $headers'); 
+    print('[ApiService] Body: $encodedBody'); 
     return http.post(url, headers: headers, body: encodedBody);
   }
 
@@ -48,9 +46,9 @@ class ApiService {
     final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     final headers = await _getHeaders(requiresAuth: requiresAuth);
     final encodedBody = jsonEncode(body);
-    print('[ApiService] PUT: $url'); // Logging
-    print('[ApiService] Headers: $headers'); // Logging
-    print('[ApiService] Body: $encodedBody'); // Logging
+    print('[ApiService] PUT: $url'); 
+    print('[ApiService] Headers: $headers'); 
+    print('[ApiService] Body: $encodedBody'); 
     return http.put(url, headers: headers, body: encodedBody);
   }
 
@@ -59,13 +57,12 @@ class ApiService {
     final url = Uri.parse('${ApiConstants.baseUrl}$endpoint');
     final headers = await _getHeaders(requiresAuth: requiresAuth);
     final encodedBody = body != null ? jsonEncode(body) : null;
-    print('[ApiService] DELETE: $url'); // Logging
-    print('[ApiService] Headers: $headers'); // Logging
-    if (encodedBody != null) print('[ApiService] Body: $encodedBody'); // Logging
+    print('[ApiService] DELETE: $url'); 
+    print('[ApiService] Headers: $headers'); 
+    if (encodedBody != null) print('[ApiService] Body: $encodedBody'); 
     return http.delete(url, headers: headers, body: encodedBody);
   }
 
-  // --- METHOD BARU YANG DITAMBAHKAN UNTUK FITUR PELACAKAN ---
   Future<void> recordTrip({
     required int vehicleId,
     required double distanceKm,
@@ -74,10 +71,8 @@ class ApiService {
     required double endLatitude,
     required double endLongitude,
   }) async {
-    // Endpoint ini disesuaikan dengan file vehiclesRoutes.js Anda
     final String endpoint = '/vehicles/$vehicleId/trips';
     
-    // Body ini disesuaikan dengan yang diharapkan backend Anda
     final Map<String, dynamic> body = {
       'distance_km': distanceKm,
       'start_latitude': startLatitude,
@@ -86,10 +81,8 @@ class ApiService {
       'end_longitude': endLongitude,
     };
 
-    // Menggunakan method post yang sudah ada
     final response = await post(endpoint, body, requiresAuth: true);
 
-    // Backend Anda memberikan status 201 (Created) saat sukses
     if (response.statusCode != 201) {
       throw Exception('Gagal mencatat perjalanan: ${response.body}');
     } else {

@@ -1,6 +1,5 @@
-// lib/screens/history_screen.dart
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // <-- TAMBAHKAN IMPOR INI
+import 'package:intl/intl.dart';
 import '../models/service_history_item.dart';
 import '../services/vehicle_service.dart';
 
@@ -43,7 +42,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     } else if (typeLower.contains('ban')) {
       return Icons.tire_repair_outlined;
     } else if (typeLower.contains('rem')) {
-      return Icons.car_repair; // Mengganti dengan ikon yang ada
+      return Icons.car_repair;
     } else if (typeLower.contains('kelistrikan') || typeLower.contains('aki')) {
       return Icons.electrical_services_outlined;
     }

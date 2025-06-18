@@ -1,4 +1,3 @@
-// lib/widgets/riding_log_card.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/trip_model.dart';
@@ -10,7 +9,7 @@ class RidingLogCard extends StatelessWidget {
 
   const RidingLogCard({super.key, required this.trip, required this.onTap});
 
-  // Helper widget untuk baris info (lokasi, tanggal, jarak)
+  // info lokasi, tanggal, jarak
   Widget _buildInfoRow(IconData icon, String text, BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
@@ -32,8 +31,7 @@ class RidingLogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Format data perjalanan untuk ditampilkan
-    // PERBAIKAN: Menggunakan trip.startAddress dan trip.endAddress
+    // Tampilan data perjalanan
     final startLocation = trip.startAddress ?? 'Lokasi Awal Tidak Diketahui';
     final endLocation = trip.endAddress ?? 'Lokasi Akhir Tidak Diketahui';
     final formattedDate = DateFormatter.toWibString(trip.endTime, format: 'dd/MM/yyyy');
@@ -45,7 +43,7 @@ class RidingLogCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16.0),
       child: Card(
-        clipBehavior: Clip.antiAlias, // Agar gambar tidak keluar dari border radius
+        clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
         ),
@@ -55,14 +53,12 @@ class RidingLogCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Kolom untuk gambar peta
               Expanded(
                 flex: 2,
                 child: Image.asset(
-                  'assets/images/map_placeholder.png', // Pastikan Anda punya aset ini
+                  'assets/images/map_placeholder.png',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
-                    // Fallback jika gambar map placeholder tidak ada
                     return Container(
                       color: Colors.grey[300],
                       child: const Icon(Icons.map, color: Colors.grey, size: 50),
@@ -70,7 +66,7 @@ class RidingLogCard extends StatelessWidget {
                   },
                 ),
               ),
-              // Kolom untuk detail perjalanan
+              // detail perjalanan
               Expanded(
                 flex: 3,
                 child: Padding(
@@ -95,7 +91,6 @@ class RidingLogCard extends StatelessWidget {
                       const Divider(height: 16),
                       _buildInfoRow(Icons.location_on_outlined, '$startLocation -> $endLocation', context),
                       _buildInfoRow(Icons.calendar_today_outlined, '$formattedDate, $formattedTime', context),
-                      // PERBAIKAN: Menggunakan trip.distanceKm
                       _buildInfoRow(Icons.route_outlined, '${trip.distanceKm.toStringAsFixed(1)} km', context),
                     ],
                   ),

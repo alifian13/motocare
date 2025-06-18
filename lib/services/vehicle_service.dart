@@ -1,7 +1,6 @@
-// lib/services/vehicle_service.dart
 import 'dart:convert';
 import 'package:motocare/models/vehicle_model.dart';
-import 'package:motocare/models/trip_model.dart'; // Pastikan impor ini ada
+import 'package:motocare/models/trip_model.dart';
 import 'package:motocare/models/service_history_item.dart';
 import 'package:motocare/models/schedule_item.dart';
 import 'package:motocare/services/api_service.dart';
@@ -143,11 +142,9 @@ class VehicleService {
   // --- Metode untuk mendapatkan perjalanan terbaru ---
   Future<List<Trip>> getRecentTrips(String vehicleId, {int limit = 3}) async {
     try {
-      // PERBAIKAN: Menggunakan endpoint 'all-trips' yang benar sesuai backend Anda
       final response = await _apiService.get('/vehicles/$vehicleId/all-trips?limit=$limit&sortBy=end_time&sortOrder=DESC');
       
       if (response.statusCode == 200) {
-        // Backend Anda mengembalikan array langsung di properti 'trips'
         final responseBody = jsonDecode(response.body);
         if (responseBody['trips'] != null && responseBody['trips'] is List) {
             List<dynamic> body = responseBody['trips'];
@@ -159,11 +156,11 @@ class VehicleService {
         }
       } else {
         print('[VehicleService] Gagal mendapatkan perjalanan terbaru: ${response.statusCode} ${response.body}');
-        return []; // Kembalikan list kosong jika gagal
+        return [];
       }
     } catch (e) {
       print('[VehicleService] Error di getRecentTrips: $e');
-      return []; // Kembalikan list kosong jika terjadi error
+      return [];
     }
   }
 }

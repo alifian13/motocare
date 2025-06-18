@@ -1,6 +1,5 @@
-// lib/services/user_service.dart
 import 'dart:convert';
-import 'dart:io'; // Untuk File
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:motocare/models/user_data_model.dart';
@@ -10,7 +9,6 @@ import 'package:motocare/utils/constants.dart';
 class UserService {
   final ApiService _apiService = ApiService();
 
-  // Kunci konsisten untuk SharedPreferences (dibuat publik)
   static const String prefToken = 'token';
   static const String prefUserId = 'user_id';
   static const String prefUserName = 'user_name';

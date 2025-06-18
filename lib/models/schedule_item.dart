@@ -1,4 +1,3 @@
-// lib/models/schedule_item.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -9,7 +8,6 @@ class ScheduleItem {
   final DateTime? nextDueDate;
   final int? nextDueOdometer;
   final String status;
-  // Tambahkan field lain jika perlu
 
   ScheduleItem({
     required this.scheduleId,
@@ -37,12 +35,11 @@ class ScheduleItem {
     return "Belum terjadwal";
   }
 
-   // Helper untuk styling berdasarkan status
   Color getStatusColor() {
     switch (status.toUpperCase()) {
       case 'OVERDUE': return Colors.red.shade100;
       case 'UPCOMING': return Colors.orange.shade100;
-      default: return Colors.green.shade100; // PENDING, COMPLETED
+      default: return Colors.green.shade100;
     }
   }
   IconData getStatusIcon() {

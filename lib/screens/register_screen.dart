@@ -1,27 +1,22 @@
-// lib/screens/register_screen.dart
 import 'package:flutter/material.dart';
-import '../services/user_service.dart'; // Pastikan path ini benar
-// import '../shared/widgets/custom_text_field.dart'; // Jika Anda menggunakan widget custom
-// import '../shared/widgets/password_field.dart'; // Jika Anda menggunakan widget custom
+import '../services/user_service.dart';
 
-// Model data sederhana untuk dropdown, bisa dipisah ke file model jika kompleks
-// Ini sudah ada di file Anda:
 class DropdownOption {
-  final String id; // e.g., 'honda', 'beat'
-  final String name; // e.g., 'Honda', 'Beat'
+  final String id;
+  final String name; 
   DropdownOption(this.id, this.name);
 }
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
-  static const routeName = '/register'; // Untuk navigasi jika Anda menggunakan named routes
+  static const routeName = '/register';
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>(); // Untuk validasi form registrasi utama
+  final _formKey = GlobalKey<FormState>();
 
   // Controller dari file Anda
   final _nameController = TextEditingController();
@@ -29,17 +24,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _addressController = TextEditingController();
   final _plateNumberController = TextEditingController();
-  final _brandController = TextEditingController(); // Akan digunakan sebagai input teks
-  final _modelController = TextEditingController(); // Akan digunakan sebagai input teks
+  final _brandController = TextEditingController(); 
+  final _modelController = TextEditingController();
   final _odometerController = TextEditingController();
   final _lastServiceDateController = TextEditingController();
 
-  // Variabel untuk dropdown brand dan model (jika ingin diimplementasikan nanti)
-  // String? _selectedBrandId;
-  // String? _selectedModelId;
-  // DateTime? _selectedServiceDate; // Untuk _lastServiceDateController jika pakai DatePicker internal
-
-  // Untuk menampung data servis awal - sudah ada di file Anda
   final List<Map<String, dynamic>> _initialServices = [];
   bool _isLoading = false;
 
@@ -58,14 +47,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   // Fungsi untuk menampilkan dialog tambah servis awal
-  Future<void> _showAddInitialServiceDialog() async { // Menghapus parameter context
+  Future<void> _showAddInitialServiceDialog() async {
     final dialogFormKey = GlobalKey<FormState>();
     String? serviceType;
     TextEditingController odometerController = TextEditingController();
     TextEditingController dateController = TextEditingController();
 
     return showDialog<void>(
-      context: context, // Menggunakan context dari _RegisterScreenState
+      context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Tambah Riwayat Servis Awal'),
@@ -92,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     readOnly: true,
                     validator: (value) => value == null || value.isEmpty ? 'Wajib diisi' : null,
                     onTap: () async {
-                      FocusScope.of(dialogContext).requestFocus(FocusNode()); // Untuk menutup keyboard jika terbuka
+                      FocusScope.of(dialogContext).requestFocus(FocusNode());
                       DateTime? picked = await showDatePicker(
                           context: dialogContext,
                           initialDate: DateTime.now(),
@@ -117,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               onPressed: () {
                 if (dialogFormKey.currentState!.validate()) {
                   dialogFormKey.currentState!.save();
-                  setState(() { // Panggil setState dari _RegisterScreenState
+                  setState(() { 
                     _initialServices.add({
                       "service_type": serviceType!,
                       "odometer_at_service": int.parse(odometerController.text),
@@ -125,7 +114,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     });
                   });
                   Navigator.of(dialogContext).pop();
-                  ScaffoldMessenger.of(context).showSnackBar( // Gunakan context dari _RegisterScreenState
+                  ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('${serviceType!} ditambahkan ke riwayat awal.')),
                   );
                 }
@@ -137,7 +126,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // Fungsi _handleRegister yang disesuaikan
   void _handleRegister() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
@@ -157,7 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (addInitialFlow) {
         bool addMoreServices = true;
         while(addMoreServices) {
-          await _showAddInitialServiceDialog(); // Memanggil fungsi yang sudah menggunakan context dari state
+          await _showAddInitialServiceDialog(); 
           addMoreServices = await showDialog<bool>(
             context: context,
             barrierDismissible: false,
@@ -182,11 +170,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         address: _addressController.text.isEmpty ? null : _addressController.text,
         // Data Kendaraan
         plateNumber: _plateNumberController.text,
-        brand: _brandController.text, // Menggunakan input teks
-        model: _modelController.text, // Menggunakan input teks
+        brand: _brandController.text,
+        model: _modelController.text, 
         currentOdometer: int.tryParse(_odometerController.text) ?? 0,
         lastServiceDate: _lastServiceDateController.text.isEmpty ? null : _lastServiceDateController.text,
-        // Data Servis Awal Opsional
         initialServices: _initialServices.isNotEmpty ? _initialServices : null,
       );
 
@@ -197,7 +184,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(result['data']?['message'] ?? 'Registrasi Berhasil! Silakan login.')),
           );
-          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false); // Kembali ke login dan hapus stack
+          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(result['message'] ?? 'Registrasi Gagal')),
@@ -207,7 +194,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  // Fungsi _buildTextField dari file Anda (disesuaikan sedikit jika perlu)
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -237,12 +223,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // Fungsi _buildDateField dari file Anda
   Widget _buildDateField({
     required String label,
     required TextEditingController controller,
-    // required DateTime? selectedDate, // Tidak perlu lagi, cukup controller
-    // required ValueChanged<DateTime?> onDateChanged, // Tidak perlu lagi
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -266,17 +249,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             lastDate: DateTime.now(),
           );
           if (pickedDate != null) {
-            // setState(() { // Tidak perlu setState di sini jika controller yang diupdate
-            //   selectedDate = pickedDate; // Hapus jika selectedDate tidak dipakai lagi
-            // });
             controller.text = pickedDate.toIso8601String().split('T').first;
-            // onDateChanged(pickedDate); // Hapus jika onDateChanged tidak dipakai lagi
           }
         },
-        validator: (value) { // Tambahkan validator jika field ini wajib
-          // if (value == null || value.isEmpty) {
-          //   return 'Tanggal tidak boleh kosong';
-          // }
+        validator: (value) { 
           return null;
         },
       ),
@@ -358,17 +334,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _plateNumberController,
                   label: 'Nomor Polisi',
                   hint: 'Contoh: B 1234 XYZ',
-                  prefixIcon: Icons.motorcycle_outlined, // Atau Icons.confirmation_number_outlined
+                  prefixIcon: Icons.motorcycle_outlined,
                   validator: (value) => value == null || value.isEmpty ? 'Nomor polisi tidak boleh kosong' : null,
                 ),
-                _buildTextField( // Menggunakan TextField biasa, bukan dropdown untuk brand
+                _buildTextField( 
                   controller: _brandController,
                   label: 'Merek Motor',
                   hint: 'Contoh: Honda, Yamaha',
                   prefixIcon: Icons.branding_watermark_outlined,
                   validator: (value) => value == null || value.isEmpty ? 'Merek tidak boleh kosong' : null,
                 ),
-                _buildTextField( // Menggunakan TextField biasa, bukan dropdown untuk model
+                _buildTextField( 
                   controller: _modelController,
                   label: 'Model/Tipe Motor',
                   hint: 'Contoh: Beat Street, NMAX',
@@ -387,7 +363,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                      return null;
                   }
                 ),
-                _buildDateField( // Menggunakan _buildDateField dari file Anda
+                _buildDateField( 
                   label: 'Tanggal Servis Terakhir (Opsional)',
                   controller: _lastServiceDateController,
                 ),
@@ -423,19 +399,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 12),
                 ],
-                // Tombol untuk memicu dialog penambahan servis awal bisa diletakkan di sini,
-                // atau seperti yang sudah diintegrasikan dalam _handleRegister.
-                // Untuk UX yang lebih jelas, Anda bisa tambahkan tombol "Tambah Riwayat Servis Awal" di sini:
                 TextButton.icon(
                   icon: Icon(Icons.add_circle_outline, color: Theme.of(context).primaryColor),
                   label: Text('Tambah Riwayat Servis Awal (Opsional)', style: TextStyle(color: Theme.of(context).primaryColor)),
                   onPressed: _showAddInitialServiceDialog,
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    // shape: RoundedRectangleBorder(
-                    //   side: BorderSide(color: Theme.of(context).primaryColor),
-                    //   borderRadius: BorderRadius.circular(8),
-                    // ),
                   ),
                 ),
 

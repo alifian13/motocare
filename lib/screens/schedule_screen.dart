@@ -1,14 +1,13 @@
-// lib/screens/schedule_screen.dart
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Untuk format angka
+import 'package:intl/intl.dart';
 import '../models/schedule_item.dart';
 import '../services/vehicle_service.dart';
 
 class ScheduleScreen extends StatefulWidget {
   final String vehicleId;
-  final String? plateNumber; // Tambahkan parameter ini
+  final String? plateNumber;
 
-  const ScheduleScreen({super.key, required this.vehicleId, this.plateNumber}); // Update konstruktor
+  const ScheduleScreen({super.key, required this.vehicleId, this.plateNumber});
   static const routeName = '/schedule';
 
   @override
@@ -72,12 +71,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     decoration: const InputDecoration(labelText: 'Tanggal Servis', border: OutlineInputBorder(), hintText: 'YYYY-MM-DD'),
                     readOnly: true,
                     onTap: () async {
-                      FocusScope.of(dialogContext).requestFocus(FocusNode()); // Tutup keyboard
+                      FocusScope.of(dialogContext).requestFocus(FocusNode());
                       DateTime? picked = await showDatePicker(
                           context: dialogContext,
                           initialDate: DateTime.now(),
                           firstDate: DateTime(2000),
-                          lastDate: DateTime.now().add(const Duration(days: 1))); // Izinkan hari ini
+                          lastDate: DateTime.now().add(const Duration(days: 1)));
                       if (picked != null) {
                         dateController.text = DateFormat('yyyy-MM-dd').format(picked);
                       }
@@ -120,27 +119,22 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   final serviceData = {
                     'service_date': dateController.text,
                     'odometer_at_service': int.parse(odometerController.text),
-                    'service_types': [serviceType], // Kirim sebagai array
+                    'service_types': [serviceType], 
                     'completed_schedule_ids': [schedule.scheduleId],
                     'description': descriptionController.text.isEmpty ? null : descriptionController.text,
                     'workshop_name': workshopController.text.isEmpty ? null : workshopController.text,
-                    'cost': costController.text.isEmpty ? null : double.tryParse(costController.text.replaceAll('.', '')), // Hapus pemisah ribuan jika ada
+                    'cost': costController.text.isEmpty ? null : double.tryParse(costController.text.replaceAll('.', '')),
                   };
-                  Navigator.of(dialogContext).pop(); // Tutup dialog sebelum panggil API
-
-                  // Tampilkan loading indicator jika perlu
-                  // ScaffoldMessenger.of(parentContext).showSnackBar(
-                  //   const SnackBar(content: Text('Menyimpan data...'), duration: Duration(seconds: 1)),
-                  // );
+                  Navigator.of(dialogContext).pop(); 
 
                   final result = await _vehicleService.addServiceHistory(widget.vehicleId, serviceData);
 
-                  if (mounted) { // Cek mounted lagi setelah await
+                  if (mounted) {
                     if (result['success']) {
                       ScaffoldMessenger.of(parentContext).showSnackBar(
                         const SnackBar(content: Text('Servis berhasil dicatat dan jadwal diperbarui!'), backgroundColor: Colors.green),
                       );
-                      _loadSchedules(); // Muat ulang jadwal
+                      _loadSchedules();
                     } else {
                       ScaffoldMessenger.of(parentContext).showSnackBar(
                         SnackBar(content: Text(result['message'] ?? 'Gagal mencatat servis.'), backgroundColor: Colors.red),
@@ -160,7 +154,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Jadwal Perawatan ${widget.plateNumber ?? ''}'), // Tampilkan plat nomor
+        title: Text('Jadwal Perawatan ${widget.plateNumber ?? ''}'), 
       ),
       body: FutureBuilder<List<ScheduleItem>>(
         future: _schedulesFuture,
@@ -204,17 +198,16 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               itemCount: schedules.length,
               itemBuilder: (context, index) {
                 final schedule = schedules[index];
-                // Menggunakan getStatusColor dan getStatusIcon dari model
                 Color statusColor = schedule.getStatusColor();
                 IconData statusIcon = schedule.getStatusIcon();
                 bool showCompleteButton = (schedule.status.toUpperCase() == 'UPCOMING' || schedule.status.toUpperCase() == 'OVERDUE');
 
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 6.0),
-                  color: statusColor, // Warna latar card berdasarkan status
+                  color: statusColor, 
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: Colors.white.withOpacity(0.7), // Lingkaran putih transparan
+                      backgroundColor: Colors.white.withOpacity(0.7),
                       child: Icon(statusIcon, color: Theme.of(context).primaryColorDark, size: 24),
                     ),
                     title: Text(schedule.itemName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
@@ -246,7 +239,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                             ? Icon(Icons.check_circle_outline, color: Colors.green.shade700, size: 28)
                             : null),
                     onTap: () {
-                      // Aksi saat item jadwal di-tap, mungkin detail jadwal
                       print("Tapped on ${schedule.itemName}");
                     },
                   ),
