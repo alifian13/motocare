@@ -52,7 +52,6 @@ class BackgroundTrackingService {
     print("[Intelligent Tracking Service] Service dimulai untuk Vehicle ID: $vehicleId");
   }
 
-  /// Menghentikan servis pelacakan.
   Future<void> stopService() async {
     await _locationSubscription?.cancel();
     await _activitySubscription?.cancel();
@@ -94,7 +93,6 @@ class BackgroundTrackingService {
     }
   }
 
-  //hanya merekam jika state sedang RIDING.
   Future<void> _onLocationUpdate(LocationData currentLocation) async {
     final prefs = await SharedPreferences.getInstance();
     if (!(prefs.getBool('isTrackingActive') ?? false)) return;

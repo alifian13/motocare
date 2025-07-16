@@ -20,7 +20,7 @@ class _AppDrawerState extends State<AppDrawer> {
   String _userName = "Nama Pengguna";
   String _userEmail = "email@pengguna.com";
   String? _userPhotoUrl;
-  final String _baseImageUrl = "https://motocares.my.id";
+  final String _baseImageUrl = "https://domaintersakiti.my.id";
 
   @override
   void initState() {
@@ -49,8 +49,7 @@ class _AppDrawerState extends State<AppDrawer> {
     if (vehicleIdString != null) {
       Map<String, dynamic> arguments = {};
       if (routeName == HistoryScreen.routeName) {
-        arguments['vehicleId'] =
-            int.tryParse(vehicleIdString);
+        arguments['vehicleId'] = int.tryParse(vehicleIdString);
       } else if (routeName == ScheduleScreen.routeName) {
         arguments['vehicleId'] = vehicleIdString;
       }

@@ -51,7 +51,6 @@ class NotificationService {
      print("[NotificationService] Inisialisasi flutter_local_notifications selesai.");
   }
 
-  // Method instance untuk menangani respons notifikasi
   void _onDidReceiveNotificationResponse(NotificationResponse notificationResponse) async {
     final String? payload = notificationResponse.payload;
     if (payload != null) {

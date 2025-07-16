@@ -34,7 +34,8 @@ class RidingLogCard extends StatelessWidget {
     // Tampilan data perjalanan
     final startLocation = trip.startAddress ?? 'Lokasi Awal Tidak Diketahui';
     final endLocation = trip.endAddress ?? 'Lokasi Akhir Tidak Diketahui';
-    final formattedDate = DateFormatter.toWibString(trip.endTime, format: 'dd/MM/yyyy');
+    final formattedDate =
+        DateFormatter.toWibString(trip.endTime, format: 'dd/MM/yyyy');
     final formattedTime = (trip.startTime != null && trip.endTime != null)
         ? '${DateFormatter.toWibString(trip.startTime, format: 'HH:mm')} - ${DateFormatter.toWibString(trip.endTime, format: 'HH:mm')}'
         : 'N/A';
@@ -61,7 +62,8 @@ class RidingLogCard extends StatelessWidget {
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
                       color: Colors.grey[300],
-                      child: const Icon(Icons.map, color: Colors.grey, size: 50),
+                      child:
+                          const Icon(Icons.map, color: Colors.grey, size: 50),
                     );
                   },
                 ),
@@ -89,9 +91,12 @@ class RidingLogCard extends StatelessWidget {
                         ],
                       ),
                       const Divider(height: 16),
-                      _buildInfoRow(Icons.location_on_outlined, '$startLocation -> $endLocation', context),
-                      _buildInfoRow(Icons.calendar_today_outlined, '$formattedDate, $formattedTime', context),
-                      _buildInfoRow(Icons.route_outlined, '${trip.distanceKm.toStringAsFixed(1)} km', context),
+                      _buildInfoRow(Icons.location_on_outlined,
+                          '$startLocation -> $endLocation', context),
+                      _buildInfoRow(Icons.calendar_today_outlined,
+                          '$formattedDate, $formattedTime', context),
+                      _buildInfoRow(Icons.route_outlined,
+                          '${trip.distanceKm.toStringAsFixed(1)} km', context),
                     ],
                   ),
                 ),

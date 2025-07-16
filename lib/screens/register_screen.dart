@@ -18,7 +18,6 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controller dari file Anda
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -369,7 +368,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Menampilkan daftar servis awal yang sudah ditambahkan
+                // daftar servis awal yang sudah ditambahkan
                 if (_initialServices.isNotEmpty) ...[
                   Text("Riwayat Servis Awal Ditambahkan:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.grey[800])),
                   const SizedBox(height: 8),

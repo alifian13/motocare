@@ -95,7 +95,6 @@ class LocationService {
     return true;
   }
 
-  // Hapus TripDetectedCallback dari parameter jika tidak digunakan untuk alur utama
   Future<void> startTracking({
     LiveLocationUpdateCallback? onLiveLocationUpdate,
     MotorStoppedWithDataCallback? onMotorStoppedWithData,
@@ -141,7 +140,7 @@ class LocationService {
             _tripStartTime = DateTime.now();
             _accumulatedDistanceKm = 0.0;
             _distanceSinceLastUiUpdateKm = 0.0;
-            _tripPoints = [currentLocationData]; // Poin pertama
+            _tripPoints = [currentLocationData];
             _consecutiveHighSpeedPoints = 0;
             print("[LocationService] ------- PERJALANAN BARU DIMULAI ------- Speed: ${speedKmh.toStringAsFixed(1)} km/h");
             if (_onLiveLocationUpdate != null) {
@@ -177,7 +176,7 @@ class LocationService {
           }
         }
 
-        // Logika Deteksi Motor Berhenti 15 detik
+        // Deteksi Motor Berhenti 15 detik
         if (speedKmh < _speedKmhConsideredStopped) {
           if (!_isCurrentlyStoppedForTimer) {
             _isCurrentlyStoppedForTimer = true;
@@ -228,7 +227,6 @@ class LocationService {
     print("[LocationService] Pelacakan dihentikan. Timer (jika ada) dibatalkan.");
   }
 
-  // Metode internal untuk mereset state perjalanan
   void _resetTripStateInternal() {
     print("[LocationService] Mereset state perjalanan internal.");
     _isTripStarted = false;

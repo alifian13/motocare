@@ -1,4 +1,4 @@
 class ApiConstants {
   static String baseUrl =
-      'https://motocares.my.id/api';
+      'https://domaintersakiti.my.id/api';
 }

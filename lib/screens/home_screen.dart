@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   static const int _defaultOilChangeIntervalMonths = 3;
   static const int _oilServiceIntervalKm = 2000;
   static const int _serviceReminderKmThreshold =50;
-  final String _baseImageUrl = "https://motocares.my.id";
+  final String _baseImageUrl = "https://domaintersakiti.my.id/";
 
   @override
   void initState() {
@@ -532,7 +532,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     try {
       _recentTrips = await _vehicleService
           .getRecentTrips(_primaryVehicle!.vehicleId.toString(), limit: 3);
-      // Urutkan perjalanan, terbaru di atas
       _recentTrips.sort((a,b) => b.endTime!.compareTo(a.endTime!));
     } catch (e) {
       if (mounted) {
@@ -610,7 +609,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Widget build(BuildContext context) {
-    // Logika perhitungan estimasi servis tetap sama
     final ScheduleItem? oliSchedule = _getScheduleByType(_oliMesinServiceType);
     int kmRemainingForOli = 0;
     String nextOliServiceInfo = "Jadwal oli belum tersedia";

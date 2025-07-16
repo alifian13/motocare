@@ -76,7 +76,6 @@ class ProfileVehicleHeader extends StatelessWidget {
               width: 100,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
-                // Fallback jika logo kendaraan gagal dimuat
                 return const Icon(Icons.motorcycle, size: 40, color: Colors.grey);
               },
             )
