@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:motocare/models/user_data_model.dart';
 import 'package:motocare/services/api_service.dart';
 import 'package:motocare/utils/constants.dart';
+import 'api_service.dart';
 
 class UserService {
   final ApiService _apiService = ApiService();
@@ -25,6 +26,7 @@ class UserService {
     required String plateNumber,
     required String brand,
     required String model,
+    required int year,
     required int currentOdometer,
     String? lastServiceDate,
     List<Map<String, dynamic>>? initialServices,
@@ -38,6 +40,7 @@ class UserService {
         'plate_number': plateNumber,
         'brand': brand,
         'model': model,
+        'year': year,
         'current_odometer': currentOdometer,
         if (lastServiceDate != null) 'last_service_date': lastServiceDate,
         if (initialServices != null && initialServices.isNotEmpty) 'initialServices': initialServices,

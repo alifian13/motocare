@@ -25,6 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _plateNumberController = TextEditingController();
   final _brandController = TextEditingController(); 
   final _modelController = TextEditingController();
+  final _yearController = TextEditingController();
   final _odometerController = TextEditingController();
   final _lastServiceDateController = TextEditingController();
 
@@ -170,7 +171,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // Data Kendaraan
         plateNumber: _plateNumberController.text,
         brand: _brandController.text,
-        model: _modelController.text, 
+        model: _modelController.text,
+        year: int.parse(_yearController.text), 
         currentOdometer: int.tryParse(_odometerController.text) ?? 0,
         lastServiceDate: _lastServiceDateController.text.isEmpty ? null : _lastServiceDateController.text,
         initialServices: _initialServices.isNotEmpty ? _initialServices : null,
@@ -349,6 +351,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   hint: 'Contoh: Beat Street, NMAX',
                   prefixIcon: Icons.two_wheeler_outlined,
                   validator: (value) => value == null || value.isEmpty ? 'Model tidak boleh kosong' : null,
+                ),
+                TextFormField(
+                  controller: _yearController,
+                  decoration: InputDecoration(labelText: 'Tahun Pembuatan (Contoh: 2018)'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Tahun pembuatan tidak boleh kosong';
+                    }
+                    if (int.tryParse(value) == null || value.length != 4) {
+                      return 'Masukkan format tahun yang valid (YYYY)';
+                    }
+                    return null;
+                  },
                 ),
                 _buildTextField(
                   controller: _odometerController,

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
+import '../models/spare_part_model.dart';
 
 class ApiService {
   Future<String?> _getToken() async {
@@ -87,6 +88,17 @@ class ApiService {
       throw Exception('Gagal mencatat perjalanan: ${response.body}');
     } else {
       print('Trip berhasil dicatat untuk vehicle $vehicleId');
+    }
+  }
+
+  Future<SparePart> getSparePart(int vehicleId, String serviceName) async {
+    final response = await get('/spare-parts/for-vehicle/$vehicleId/$serviceName');
+
+    if (response.statusCode == 200) {
+      return sparePartFromJson(response.body);
+    } else {
+      final errorBody = json.decode(response.body);
+      throw Exception(errorBody['message'] ?? 'Gagal memuat data spare part');
     }
   }
 }

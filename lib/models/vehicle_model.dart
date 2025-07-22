@@ -11,6 +11,8 @@ class Vehicle {
   final String? logoUrl;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final int? year;
+  final String? vehicleCode;
 
   Vehicle({
     required this.vehicleId,
@@ -25,6 +27,8 @@ class Vehicle {
     this.logoUrl,
     this.createdAt,
     this.updatedAt,
+    this.year,
+    this.vehicleCode,
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
@@ -51,6 +55,8 @@ class Vehicle {
       updatedAt: json['updated_at'] != null
           ? DateTime.tryParse(json['updated_at'] as String)
           : null,
+      year: json['year'],
+      vehicleCode: json['vehicle_code'],
     );
   }
 
