@@ -26,6 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _brandController = TextEditingController(); 
   final _modelController = TextEditingController();
   final _yearController = TextEditingController();
+  final _vehicleCodeController = TextEditingController();
   final _odometerController = TextEditingController();
   final _lastServiceDateController = TextEditingController();
 
@@ -41,6 +42,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _plateNumberController.dispose();
     _brandController.dispose();
     _modelController.dispose();
+    _vehicleCodeController.dispose();
     _odometerController.dispose();
     _lastServiceDateController.dispose();
     super.dispose();
@@ -172,7 +174,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         plateNumber: _plateNumberController.text,
         brand: _brandController.text,
         model: _modelController.text,
-        year: int.parse(_yearController.text), 
+        year: int.parse(_yearController.text),
+        vehicleCode: _vehicleCodeController.text, 
         currentOdometer: int.tryParse(_odometerController.text) ?? 0,
         lastServiceDate: _lastServiceDateController.text.isEmpty ? null : _lastServiceDateController.text,
         initialServices: _initialServices.isNotEmpty ? _initialServices : null,
@@ -362,6 +365,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     }
                     if (int.tryParse(value) == null || value.length != 4) {
                       return 'Masukkan format tahun yang valid (YYYY)';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(  
+                  controller: _vehicleCodeController,
+                  decoration: InputDecoration(
+                    labelText: 'Kode Motor',
+                    hintText: 'Contoh: K93 (Lihat di STNK/Internet)',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.confirmation_number_outlined),
+                  ),
+                  textCapitalization: TextCapitalization.characters,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Kode Motor wajib diisi.';
                     }
                     return null;
                   },

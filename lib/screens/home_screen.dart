@@ -26,6 +26,7 @@ import 'notification_list_screen.dart';
 import 'schedule_screen.dart';
 import 'settings_screen.dart';
 import 'trip_detail_screen.dart';
+import 'spare_part_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -935,10 +936,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           label: "Jadwal",
           onTap: () {
             if (_primaryVehicle != null) {
-              Navigator.pushNamed(context, ScheduleScreen.routeName,
-                  arguments: {
-                    'vehicleId': _primaryVehicle!.vehicleId.toString(),
-                    'plateNumber': _primaryVehicle!.plateNumber,
+              Navigator.pushNamed(
+                context,
+                ScheduleScreen.routeName,
+                arguments: {
+                  // Kirim seluruh objek vehicle dalam satu argumen
+                  'vehicle': _primaryVehicle!,
                   });
             }
           },
@@ -948,6 +951,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           label: "Notifikasi",
           onTap: () =>
               Navigator.pushNamed(context, NotificationListScreen.routeName),
+        ),
+        _buildNavigationButton(
+          icon: Icons.build_circle_outlined,
+          label: "Katalog Part",
+          onTap: () {
+            if (_primaryVehicle != null) {
+              // DEBUG: Cetak vehicleCode sebelum navigasi
+              debugPrint("Membuka Katalog untuk vehicleCode: ${_primaryVehicle!.vehicleCode}");
+
+              Navigator.pushNamed(
+                context,
+                SparePartListScreen.routeName,
+                arguments: {
+                  'vehicle': _primaryVehicle!,
+                },
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Tidak ada kendaraan yang aktif.')),
+              );
+            }
+          },
         ),
       ],
     );

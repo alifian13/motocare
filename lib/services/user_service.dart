@@ -27,6 +27,7 @@ class UserService {
     required String brand,
     required String model,
     required int year,
+    required String vehicleCode,
     required int currentOdometer,
     String? lastServiceDate,
     List<Map<String, dynamic>>? initialServices,
@@ -41,10 +42,11 @@ class UserService {
         'brand': brand,
         'model': model,
         'year': year,
+        'vehicle_code': vehicleCode,
         'current_odometer': currentOdometer,
         if (lastServiceDate != null) 'last_service_date': lastServiceDate,
         if (initialServices != null && initialServices.isNotEmpty) 'initialServices': initialServices,
-      };
+      };  
 
       final response = await _apiService.post('/users/register', requestBody, requiresAuth: false);
       final responseData = jsonDecode(response.body);

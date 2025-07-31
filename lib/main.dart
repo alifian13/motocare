@@ -7,6 +7,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'services/notification_service.dart';
+import 'models/vehicle_model.dart';
 import 'screens/home_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/login_screen.dart';
@@ -16,6 +17,7 @@ import 'screens/notification_list_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/contact_us_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/spare_part_list_screen.dart';
 
 final StreamController<String?> notificationPayloadStream =
     StreamController<String?>.broadcast();
@@ -162,17 +164,33 @@ class MotorApp extends StatelessWidget {
         },
         ScheduleScreen.routeName: (context) {
           final arguments = ModalRoute.of(context)?.settings.arguments;
+          // Sekarang kita cek apakah argumen 'vehicle' ada
           if (arguments is Map<String, dynamic> &&
-              arguments.containsKey('vehicleId')) {
-            final vehicleId = arguments['vehicleId'] as String;
-            final plateNumber = arguments['plateNumber'] as String?;
+              arguments.containsKey('vehicle')) {
+            
+            // Ambil seluruh objek vehicle dari argumen
+            final vehicle = arguments['vehicle'] as Vehicle; 
+            
             return ScheduleScreen(
-                vehicleId: vehicleId, plateNumber: plateNumber);
+              // Kirim data ke ScheduleScreen dengan tipe yang benar
+              vehicleId: vehicle.vehicleId, // vehicleId dari model sudah int
+              plateNumber: vehicle.plateNumber,
+              vehicle: vehicle, // Kirim juga objek lengkapnya
+            );
           }
-          return _buildErrorRoute("ID Kendaraan tidak valid untuk Jadwal.");
+          // Jika argumen tidak sesuai, tampilkan error
+          return _buildErrorRoute("Data Kendaraan tidak valid untuk membuka Jadwal.");
         },
         NotificationListScreen.routeName: (context) =>
             const NotificationListScreen(),
+        SparePartListScreen.routeName: (context) {
+          final arguments = ModalRoute.of(context)?.settings.arguments;
+          if (arguments is Map<String, dynamic> && arguments.containsKey('vehicle')) {
+            final vehicle = arguments['vehicle'] as Vehicle;
+            return SparePartListScreen(vehicle: vehicle);
+          }
+          return _buildErrorRoute("Data Kendaraan tidak valid untuk membuka Katalog Part.");
+        },
         ProfileScreen.routeName: (context) => const ProfileScreen(),
         ContactUsScreen.routeName: (context) => const ContactUsScreen(),
         SettingsScreen.routeName: (context) => const SettingsScreen(),

@@ -3,6 +3,7 @@ import 'package:motocare/models/vehicle_model.dart';
 import 'package:motocare/models/trip_model.dart';
 import 'package:motocare/models/service_history_item.dart';
 import 'package:motocare/models/schedule_item.dart';
+import 'package:motocare/models/spare_part_model.dart';
 import 'package:motocare/services/api_service.dart';
 
 class VehicleService {
@@ -163,4 +164,16 @@ class VehicleService {
       return [];
     }
   }
+
+  Future<List<SparePart>> getAllSpareParts(int vehicleId) async {
+  final response = await _apiService.get('/spare-parts/by-vehicle/$vehicleId');
+  
+  if (response.statusCode == 200) {
+    final List<dynamic> responseData = json.decode(response.body);
+    return responseData.map((data) => SparePart.fromJson(data)).toList();
+  } else {
+    final errorBody = json.decode(response.body);
+    throw Exception(errorBody['message'] ?? 'Gagal memuat daftar spare part');
+  }
+}
 }
